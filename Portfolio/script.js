@@ -9,7 +9,7 @@ const projects = [
   {
     title: "Coloku Puzzle Generator",
     description: "A dynamic crossword puzzle themed around novels.",
-    liveUrl: "https://your-crossword-app.netlify.app",
+    liveUrl: "/Portfolio/Projects/ColorkuGen.html",
     repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Projects/ColorkuGen.html",
   },
   {
