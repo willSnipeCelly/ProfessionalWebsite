@@ -7,10 +7,10 @@ const projects = [
     repoUrl: "https://github.com/your-username/wordle-app",
   },
   {
-    title: "Crossword Puzzle Generator",
+    title: "Coloku Puzzle Generator",
     description: "A dynamic crossword puzzle themed around novels.",
     liveUrl: "https://your-crossword-app.netlify.app",
-    repoUrl: "https://github.com/your-username/crossword-app",
+    repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Projects/ColorkuGen.html",
   },
   {
     title: "Financial Model Tool",
