@@ -3,8 +3,8 @@ const projects = [
   {
     title: "Wordle Themed Game",
     description: "A fun word-guessing game inspired by Wordle.",
-    liveUrl: "https://your-wordle-app.netlify.app",
-    repoUrl: "https://github.com/your-username/wordle-app",
+    liveUrl: "projects/word%20rush/wordrush.html",
+    repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Projects/",
   },
   {
     title: "Coloku Puzzle Generator",
