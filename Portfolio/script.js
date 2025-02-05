@@ -7,16 +7,16 @@ const projects = [
     repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Projects/",
   },
   {
-    title: "Coloku Puzzle Generator",
+    title: "Colorku Puzzle Generator",
     description: "A dynamic crossword puzzle themed around novels.",
     liveUrl: "/Projects/ColorkuGen.html",
     repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Projects/ColorkuGen.html",
   },
   {
-    title: "Financial Model Tool",
-    description: "A financial modeling tool for analyzing investment returns.",
-    liveUrl: "https://your-financial-tool.netlify.app",
-    repoUrl: "https://github.com/your-username/financial-model",
+    title: "Crossword Puzzles",
+    description: "Here is a dump of crossword puzzles I've made. They are just for fun.",
+    liveUrl: "/Crosswords/crosswords.html",
+    //repoUrl: "https://github.com/your-username/financial-model",
   },
 ];
 
