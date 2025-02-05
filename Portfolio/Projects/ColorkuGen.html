@@ -1,163 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sudoku Generator</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(9, 40px);
-            gap: 1px;
-            margin: auto;
-        }
-        .cell {
-            width: 40px;
-            height: 40px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            border: 1px solid black;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white; /* White text for better contrast */
-        }
-        .empty { background-color: #ffffff; color: black; } /* White for empty cells */
-    </style>
-</head>
-<body>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sudoku Generator</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+      }
 
-<h2>Sudoku Generator</h2>
-<label for="difficulty">Choose Difficulty:</label>
-<select id="difficulty">
+      .grid {
+          display: grid;
+          grid-template-columns: repeat(3, auto);
+          grid-template-rows: repeat(3, auto);
+          gap: 0;
+          width: 374px;  /* Exact width: 9 * 40px + 8 * 3px borders */
+          height: 374px; /* Same height */
+          border: 3px solid black;
+      }
+
+      .subgrid {
+          display: grid;
+          grid-template-columns: repeat(3, 40px);
+          grid-template-rows: repeat(3, 40px);
+          border: 2px solid black; /* Thicker border for 3x3 sections */
+      }
+
+      .cell {
+          width: 40px;
+          height: 40px;
+          text-align: center;
+          font-size: 20px;
+          font-weight: bold;
+          border: 1px solid gray; /* Lighter border for normal cells */
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: black;
+          background-color: white;
+      }
+
+      .empty {
+          background-color: white;
+          color: black;
+      }
+  </style>
+</head>
+
+<body>
+  <h2>Sudoku Generator</h2>
+  <label for="difficulty">Choose Difficulty:</label>
+  <select id="difficulty">
     <option value="40">Easy</option>
     <option value="35">Medium</option>
     <option value="30">Hard</option>
     <option value="25">Expert</option>
-</select>
-<button onclick="generateSudoku()">Generate</button>
+  </select>
+  <button onclick="generateSudoku()">Generate</button>
+  <div id="sudokuBoard" class="grid"></div>
 
-<div id="sudokuBoard" class="grid"></div>
+  <script>
+    // Define number-to-color mapping
+    const colorMap = {
+      1: "rgb(255, 0, 0)",      // Red
+      2: "rgb(0, 255, 0)",      // Light Green
+      3: "rgb(0, 0, 255)",      // Blue
+      4: "rgb(255, 255, 0)",    // Yellow
+      5: "rgb(255, 165, 0)",    // Orange
+      6: "rgb(128, 0, 128)",    // Purple
+      7: "rgb(0, 255, 255)",    // Cyan
+      8: "rgb(255, 192, 203)",  // Pink
+      9: "rgb(6, 64, 43)",      // Dark Green
+      0: "rgb(255, 255, 255)"   // White for empty cells
+    };
 
-<script>
-// Define number-to-color mapping
-const colorMap = {
-    1: "rgb(255, 0, 0)",      // Red
-    2: "rgb(0, 255, 0)",      // Light Green
-    3: "rgb(0, 0, 255)",      // Blue
-    4: "rgb(255, 255, 0)",    // Yellow
-    5: "rgb(255, 165, 0)",    // Orange
-    6: "rgb(128, 0, 128)",    // Purple
-    7: "rgb(0, 255, 255)",    // Cyan
-    8: "rgb(255, 192, 203)",  // Pink
-    9: "rgb(6, 64, 43)",      // Dark Green
-    0: "rgb(255, 255, 255)"   // White for empty cells
-};
+    function generateSudoku() {
+      let board = document.getElementById("sudokuBoard");
+      board.innerHTML = "";
 
-// Shuffle an array (Fisher-Yates algorithm)
-function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
+      let clues = parseInt(document.getElementById('difficulty').value, 10);
+      let fullBoard = generateFullBoard();
+      let puzzle = removeNumbers(fullBoard, clues);
+      displayBoard(puzzle);
+    }
+
+    // Display the Sudoku board in HTML with subgrids
+    function displayBoard(board) {
+      let container = document.getElementById('sudokuBoard');
+      container.innerHTML = ""; // Clear previous board
+
+      // Create 9 subgrid elements (3×3 sections)
+      let subgrids = Array.from({ length: 9 }, () => document.createElement("div"));
+      subgrids.forEach(subgrid => {
+        subgrid.className = "subgrid";
+        container.appendChild(subgrid);
+      });
+
+      // Place cells inside the correct subgrid
+      for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+          let num = board[row][col];
+          let cell = document.createElement("div");
+          cell.className = "cell " + (num === 0 ? "empty" : "");
+          cell.style.backgroundColor = colorMap[num];
+          cell.textContent = num === 0 ? "" : num; // Show number only if it's not empty
+
+          // Determine which subgrid to insert the cell into
+          let subgridIndex = Math.floor(row / 3) * 3 + Math.floor(col / 3);
+          subgrids[subgridIndex].appendChild(cell);
+        }
+      }
+    }
+
+    // Generate a full valid Sudoku board
+    function generateFullBoard() {
+      let board = createEmptyBoard();
+      solveSudoku(board);
+      return board;
+    }
+
+    // Create an empty 9x9 board
+    function createEmptyBoard() {
+      return Array.from({ length: 9 }, () => Array(9).fill(0));
+    }
+
+    // Solve the Sudoku board using backtracking
+    function solveSudoku(board) {
+      for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+          if (board[row][col] === 0) {
+            let numbers = [...Array(9).keys()].map(n => n + 1);
+            shuffle(numbers);
+            for (let num of numbers) {
+              if (isValid(board, row, col, num)) {
+                board[row][col] = num;
+                if (solveSudoku(board)) return true;
+                board[row][col] = 0;
+              }
+            }
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    // Check if placing num at board[row][col] is valid
+    function isValid(board, row, col, num) {
+      for (let i = 0; i < 9; i++) {
+        if (board[row][i] === num || board[i][col] === num) return false;
+      }
+      let startRow = Math.floor(row / 3) * 3;
+      let startCol = Math.floor(col / 3) * 3;
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (board[startRow + i][startCol + j] === num) return false;
+        }
+      }
+      return true;
+    }
+
+    // Shuffle an array (Fisher-Yates algorithm)
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
+      }
     }
-}
 
-// Create an empty 9x9 board
-function createEmptyBoard() {
-    return Array.from({ length: 9 }, () => Array(9).fill(0));
-}
-
-// Solve Sudoku with backtracking
-function solveSudoku(board) {
-    for (let row = 0; row < 9; row++) {
+    // Remove numbers from a solved board to create a puzzle
+    function removeNumbers(fullBoard, clues) {
+      let puzzle = fullBoard.map(row => row.slice());
+      let cells = [];
+      for (let row = 0; row < 9; row++) {
         for (let col = 0; col < 9; col++) {
-            if (board[row][col] === 0) {
-                let numbers = [...Array(9).keys()].map(n => n + 1); // 1-9
-                shuffle(numbers); // Random order
-                
-                for (let num of numbers) {
-                    if (isValid(board, row, col, num)) {
-                        board[row][col] = num;
-                        if (solveSudoku(board)) return true;
-                        board[row][col] = 0;
-                    }
-                }
-                return false;
-            }
+          cells.push({ row, col });
         }
+      }
+      shuffle(cells);
+      for (let cell of cells) {
+        let filledCells = puzzle.flat().filter(val => val !== 0).length;
+        if (filledCells <= clues) break;
+        let { row, col } = cell;
+        if (puzzle[row][col] === 0) continue;
+        let temp = puzzle[row][col];
+        puzzle[row][col] = 0;
+      }
+      return puzzle;
     }
-    return true;
-}
-
-// Check if placing num at board[row][col] is valid
-function isValid(board, row, col, num) {
-    for (let i = 0; i < 9; i++) {
-        if (board[row][i] === num || board[i][col] === num) return false;
-    }
-    let startRow = Math.floor(row / 3) * 3;
-    let startCol = Math.floor(col / 3) * 3;
-    for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-            if (board[startRow + i][startCol + j] === num) return false;
-        }
-    }
-    return true;
-}
-
-// Generate a full valid Sudoku board with randomization
-function generateFullBoard() {
-    let board = createEmptyBoard();
-
-    // Fill the first row randomly
-    let firstRow = [...Array(9).keys()].map(n => n + 1);
-    shuffle(firstRow);
-    board[0] = firstRow;
-
-    // Solve the board from this randomized state
-    solveSudoku(board);
-    return board;
-}
-
-// Remove numbers to create a puzzle
-function removeNumbers(board, clues) {
-    let puzzle = board.map(row => [...row]); // Deep copy
-    let emptyCells = 81 - clues;
-    while (emptyCells > 0) {
-        let row = Math.floor(Math.random() * 9);
-        let col = Math.floor(Math.random() * 9);
-        if (puzzle[row][col] !== 0) {
-            puzzle[row][col] = 0;
-            emptyCells--;
-        }
-    }
-    return puzzle;
-}
-
-// Generate a Sudoku puzzle with a given difficulty
-function generateSudoku() {
-    let clues = document.getElementById('difficulty').value;
-    let fullBoard = generateFullBoard();
-    let puzzle = removeNumbers(fullBoard, clues);
-    displayBoard(puzzle);
-}
-
-// Display the Sudoku board in HTML with colors
-function displayBoard(board) {
-    let container = document.getElementById('sudokuBoard');
-    container.innerHTML = ""; // Clear previous board
-    board.forEach(row => {
-        row.forEach(num => {
-            let cell = document.createElement('div');
-            cell.className = "cell " + (num === 0 ? "empty" : "");
-            cell.style.backgroundColor = colorMap[num]; // Set background color
-            //cell.textContent = num === 0 ? "" : num;
-            container.appendChild(cell);
-        });
-    });
-}
-</script>
-
+  </script>
 </body>
 </html>
