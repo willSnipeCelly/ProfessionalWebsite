@@ -2,47 +2,36 @@
 <html>
 <head>
     <title>Guess the Article</title>
-    <script>        
-        let articleTitle = '';
+    <script> 
+        let currentSentenceIndex = 0;
         let sentences = [];
-        let sentenceIndex = 0;
+        let correctTitle = "";
         const BACKEND_URL = "https://profwebbackend.onrender.com";
-
-        async function fetchArticle() {
+        
+        async function startGame() {
             const response = await fetch(`${BACKEND_URL}/get_article`);
             const data = await response.json();
             sentences = data.sentences;
-            sentenceIndex = 0;
-            showSentence();
+            correctTitle = data.title.toLowerCase();
+            document.getElementById("sentence").textContent = sentences[0]; 
         }
-
-        async function checkGuess() {
-            const guess = document.getElementById('guess').value;
-            const response = await fetch(`${BACKEND_URL}/check_guess`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ guess: guess })
-            });
         
-            const data = await response.json();
-            if (data.correct) {
+        function submitGuess() {
+            const userGuess = document.getElementById("guessInput").value.toLowerCase();
+            
+            if (userGuess === correctTitle) {
                 alert("Correct! You guessed the title.");
-                fetchArticle();
             } else {
-                sentenceIndex++;
-                showSentence();
+                currentSentenceIndex++;
+                if (currentSentenceIndex < sentences.length) {
+                    document.getElementById("sentence").textContent = sentences[currentSentenceIndex];
+                } else {
+                    alert("Game over! The correct title was: " + correctTitle);
+                }
             }
         }
-
-        function showSentence() {
-            if (sentenceIndex < sentences.length) {
-                document.getElementById('sentence').innerText = sentences[sentenceIndex];
-            } else {
-                alert("No more hints! Last chance to guess.");
-            }
-        }
-        // Call fetchArticle when the page loads
-        window.onload = fetchArticle;
+        // Call startGame when the page loads
+        window.onload = startGame;
     </script>
 </head>
 <body onload="fetchArticle()">
