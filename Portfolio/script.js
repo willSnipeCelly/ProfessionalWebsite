@@ -8,7 +8,7 @@ const projects = [
   },
   {
     title: "Colorku Puzzle Generator",
-    description: "A dynamic crossword puzzle themed around novels.",
+    description: "Generate sudoku puzzles playable on phone or colorku board.",
     liveUrl: "/Projects/ColorkuGen.html",
     repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Projects/ColorkuGen.html",
   },
@@ -17,6 +17,12 @@ const projects = [
     description: "Here is a dump of crossword puzzles I've made. They are just for fun.",
     liveUrl: "/Crosswords/crosswords.html",
     //repoUrl: "https://github.com/your-username/financial-model",
+  },
+  {
+    title: "WKEIIpedia",
+    description: "Guess the wikipedia article from the information in the article.",
+    liveUrl: "/Projects/wkeiipedia.html",
+    repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Projects/wkeiipedia.html",
   },
 ];
 
