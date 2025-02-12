@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Guess the Article</title>
+    <script>
+        let articleTitle = '';
+        let sentences = [];
+        let sentenceIndex = 0;
+
+        async function fetchArticle() {
+            const response = await fetch('/get_article');
+            const data = await response.json();
+            articleTitle = data.title;
+            sentences = data.sentences;
+            sentenceIndex = 0;
+            showSentence();
+        }
+
+        function showSentence() {
+            if (sentenceIndex < sentences.length) {
+                document.getElementById('sentence').innerText = sentences[sentenceIndex];
+            } else {
+                document.getElementById('sentence').innerText = "Out of sentences!";
+            }
+        }
+
+        async function checkGuess() {
+            const guess = document.getElementById('guess').value;
+            const response = await fetch('/check_guess', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: articleTitle, guess: guess })
+            });
+            const data = await response.json();
+            if (data.correct) {
+                alert('Correct! You guessed the title.');
+                fetchArticle();
+            } else {
+                sentenceIndex++;
+                showSentence();
+            }
+        }
+    </script>
+</head>
+<body onload="fetchArticle()">
+    <h1>Guess the Wikipedia Article</h1>
+    <p id="sentence"></p>
+    <input type="text" id="guess" placeholder="Your guess">
+    <button onclick="checkGuess()">Submit Guess</button>
+</body>
+</html>
+
