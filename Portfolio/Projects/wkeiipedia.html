@@ -34,9 +34,6 @@
             }
         }
 
-        // Call fetchArticle when the page loads
-        window.onload = fetchArticle;
-
         function showSentence() {
             if (sentenceIndex < sentences.length) {
                 document.getElementById('sentence').innerText = sentences[sentenceIndex];
@@ -44,7 +41,8 @@
                 alert("No more hints! Last chance to guess.");
             }
         }
-
+        // Call fetchArticle when the page loads
+        window.onload = fetchArticle;
     </script>
 </head>
 <body onload="fetchArticle()">
