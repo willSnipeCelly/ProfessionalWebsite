@@ -33,6 +33,10 @@
             background-color: #ccc;
             pointer-events: none;
         }
+        #gameOverOptions {
+            margin-top: 20px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -45,21 +49,33 @@
     
     <div class="keyboard" id="virtualKeyboard"></div>
 
+    <div id="gameOverOptions">
+        <button onclick="startGame()">New Game</button>
+        <a id="wikiLink" target="_blank">Read More</a>
+    </div>
+
     <script>
         let currentSentenceIndex = 0;
         let sentences = [];
         let correctTitle = "";
         let revealedTitle = "";
+        let articleURL = "";
         const BACKEND_URL = "https://profwebbackend.onrender.com";
         const guessedLetters = new Set();
 
         async function startGame() {
+            document.getElementById("gameOverOptions").style.display = "none";  
+            document.getElementById("guessInput").value = "";
+            guessedLetters.clear();
+            currentSentenceIndex = 0;
+
             const response = await fetch(`${BACKEND_URL}/get_article`);
             const data = await response.json();
             sentences = data.sentences;
             correctTitle = data.title.toLowerCase();
-            revealedTitle = correctTitle.replace(/[a-zA-Z]/g, "_"); 
+            articleURL = `https://en.wikipedia.org/wiki/${correctTitle.replace(/ /g, "_")}`;
 
+            revealedTitle = correctTitle.replace(/\S/g, char => (char === " " ? " " : "_"));
             document.getElementById("titleDisplay").textContent = revealedTitle.split("").join(" ");
             document.getElementById("sentences").innerHTML = `<p>${sentences[0]}</p>`;
             
@@ -107,25 +123,32 @@
                 if (currentSentenceIndex < sentences.length) {
                     document.getElementById("sentences").innerHTML += `<p>${sentences[currentSentenceIndex]}</p>`;
                 } else {
-                    alert(`Game over! The correct title was: ${correctTitle}`);
+                    endGame(false);
                 }
             } else if (revealedTitle === correctTitle) {
-                alert("Correct! You guessed the title.");
+                endGame(true);
             }
         }
 
         function submitFullGuess() {
             const userGuess = document.getElementById("guessInput").value.toLowerCase();
             if (userGuess === correctTitle) {
-                alert("Correct! You guessed the title.");
+                endGame(true);
             } else {
                 currentSentenceIndex++;
                 if (currentSentenceIndex < sentences.length) {
                     document.getElementById("sentences").innerHTML += `<p>${sentences[currentSentenceIndex]}</p>`;
                 } else {
-                    alert(`Game over! The correct title was: ${correctTitle}`);
+                    endGame(false);
                 }
             }
+        }
+
+        function endGame(won) {
+            alert(won ? "Correct! You guessed the title." : `Game over! The correct title was: ${correctTitle}`);
+            document.getElementById("gameOverOptions").style.display = "block";
+            document.getElementById("wikiLink").href = articleURL;
+            document.getElementById("wikiLink").textContent = "Read More on Wikipedia";
         }
 
         window.onload = startGame;
