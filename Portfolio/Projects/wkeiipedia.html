@@ -71,10 +71,10 @@
         let articleURL = "";
         const BACKEND_URL = "https://profwebbackend.onrender.com";
         const guessedLetters = new Set();
+        let gamePlayCount = 0;                
+        const adPlaceholderId = 960;
 
-        let gamePlayCount = 0;
-        const adPlaceholderId = 123; // Replace with your actual Ezoic placeholder ID
-        
+
         async function startGame() {
             document.getElementById("gameOverOptions").style.display = "none";  
             document.getElementById("guessInput").value = "";
@@ -172,7 +172,7 @@
             document.getElementById("wikiLink").href = articleURL;
             document.getElementById("wikiLink").textContent = "Read More on Wikipedia";
         }
-
+                
         //handle ads
         function displayEzoicAd(placeholderId) {
             if (window.ezstandalone && window.ezstandalone.cmd) {
