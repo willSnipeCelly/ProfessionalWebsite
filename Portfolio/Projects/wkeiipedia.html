@@ -72,9 +72,22 @@
         const BACKEND_URL = "https://profwebbackend.onrender.com";
         const guessedLetters = new Set();
 
+        let gamePlayCount = 0;
+        const adPlaceholderId = 123; // Replace with your actual Ezoic placeholder ID
+        
         async function startGame() {
             document.getElementById("gameOverOptions").style.display = "none";  
             document.getElementById("guessInput").value = "";
+            gamePlayCount++;
+            console.log("Game played:", gamePlayCount);
+        
+            if (gamePlayCount % 3 === 0) {
+                console.log("Time to show ad after 5 seconds...");
+                setTimeout(function() {
+                    displayEzoicAd(adPlaceholderId);
+                }, 5000);
+            }
+            
             guessedLetters.clear();
             currentSentenceIndex = 0;
 
@@ -158,6 +171,18 @@
             document.getElementById("gameOverOptions").style.display = "block";
             document.getElementById("wikiLink").href = articleURL;
             document.getElementById("wikiLink").textContent = "Read More on Wikipedia";
+        }
+
+        //handle ads
+        function displayEzoicAd(placeholderId) {
+            if (window.ezstandalone && window.ezstandalone.cmd) {
+                window.ezstandalone.cmd.push(function() {
+                    window.ezstandalone.showAds(placeholderId);
+                });
+                console.log("Ezoic ad displayed in placeholder:", placeholderId);
+            } else {
+                console.error("Ezoic standalone not initialized.");
+            }
         }
 
         window.onload = startGame;
