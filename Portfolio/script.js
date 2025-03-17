@@ -24,6 +24,12 @@ const projects = [
     liveUrl: "/Projects/wkeiipedia.html",
     repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Projects/wkeiipedia.html",
   },
+  {
+    title: "Dulko",
+    description: "Guess the wikipedia article from the information in the article.",
+    liveUrl: "/Projects/Dulko.html",
+    repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Portfolio/Projects/Dulko.html",
+  },
 ];
 
 // Dynamically load projects
