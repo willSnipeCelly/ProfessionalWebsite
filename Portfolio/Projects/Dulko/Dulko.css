@@ -3,13 +3,45 @@ body {
   text-align: center;
 }
 
+#gameContainer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  margin: 20px;
+}
+
+.piece-bank {
+  width: 150px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  min-height: 460px;
+}
+
+.bank-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.bank-label {
+  width: 30px;
+  font-weight: bold;
+}
+
+.bank-pieces {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
 #gameBoard {
   display: grid;
   grid-template-columns: repeat(9, 50px);
   grid-template-rows: repeat(9, 50px);
   gap: 2px;
-  margin: 20px auto;
   width: 460px;
+  border: 2px solid #000;
 }
 
 .cell {
@@ -37,7 +69,28 @@ body {
   background-color: lightcoral;
 }
 
-/* Optional: Highlight the currently selected cell */
-.selected {
+.selected-cell {
   outline: 2px solid green;
+}
+
+.piece {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: #fff;
+  user-select: none;
+}
+
+.piece.selected {
+  border: 2px solid green;
+}
+
+/* Disable pointer events for non-active bank pieces */
+.piece.inactive {
+  opacity: 0.5;
+  pointer-events: none;
 }
