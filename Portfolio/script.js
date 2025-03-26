@@ -49,3 +49,66 @@ projects.forEach((project) => {
   `;
   projectList.appendChild(col);
 });
+
+const timelineData = {
+    2012: {
+        title: "Started College",
+        description: "Began studies in Computer Science.",
+        image: "https://via.placeholder.com/300",
+        links: [{ text: "University Website", url: "https://example.com" }]
+    },
+    2015: {
+        title: "First Internship",
+        description: "Worked as a software engineering intern.",
+        image: "https://via.placeholder.com/300",
+        links: [{ text: "Internship Details", url: "https://example.com" }]
+    },
+    2018: {
+        title: "First Full-Time Job",
+        description: "Joined XYZ Corp as a software developer.",
+        image: "https://via.placeholder.com/300",
+        links: [{ text: "Company Website", url: "https://example.com" }]
+    },
+    2021: {
+        title: "Senior Developer",
+        description: "Promoted to senior software engineer.",
+        image: "https://via.placeholder.com/300",
+        links: [{ text: "Promotion Announcement", url: "https://example.com" }]
+    },
+    2025: {
+        title: "Current Position",
+        description: "Leading projects at ABC Tech.",
+        image: "https://via.placeholder.com/300",
+        links: [{ text: "Company Blog", url: "https://example.com" }]
+    }
+};
+
+const slider = document.getElementById("timeline-slider");
+const contentDiv = document.getElementById("timeline-content");
+
+function updateTimeline(year) {
+    const data = timelineData[year];
+    
+    if (!data) return;
+
+    contentDiv.innerHTML = `
+        <div class="timeline-year">${year}</div>
+        <h2>${data.title}</h2>
+        <p>${data.description}</p>
+        <img src="${data.image}" class="timeline-image" alt="${data.title}">
+        <div class="timeline-links">
+            ${data.links.map(link => `<a href="${link.url}" target="_blank">${link.text}</a>`).join("")}
+        </div>
+    `;
+
+    contentDiv.classList.remove("show");
+    setTimeout(() => contentDiv.classList.add("show"), 50);
+}
+
+slider.addEventListener("input", () => {
+    updateTimeline(slider.value);
+});
+
+// Initialize with the first year
+updateTimeline(slider.value);
+
