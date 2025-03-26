@@ -36,7 +36,12 @@
 
   <section id="about" class="container text-center my-5">
     <h2>About Me</h2>
-    <p class="mt-3">I’m a developer passionate about building interactive web applications and tools.</p>
+    <div class="timeline-container">
+        <input type="range" min="2012" max="2025" value="2012" step="1" id="timeline-slider" class="vertical-slider">
+        <div id="timeline-content">
+            <!-- Content updates dynamically here -->
+        </div>
+    </div>
   </section>
 
   <footer class="bg-dark text-light text-center p-3">
