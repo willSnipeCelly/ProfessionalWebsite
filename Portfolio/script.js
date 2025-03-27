@@ -50,6 +50,8 @@ projects.forEach((project) => {
   projectList.appendChild(col);
 });
 
+// Career Timeline Data and Logic
+
 const timelineData = {
     2012: {
         title: "Started College",
@@ -113,45 +115,6 @@ aboutTopics.addEventListener("click", (event) => {
         updateAbout(event.target.dataset.topic);
     }
 });
-
-// Initialize with the first topic
-updateAbout(Object.keys(aboutData)[0]);
-
-// Career Timeline Data and Logic
-// ... (Project data and project loading code remains the same) ...
-
-const timelineData = {
-    2012: {
-        title: "Started College",
-        description: "Began studies in Computer Science.",
-        image: "https://via.placeholder.com/300",
-        links: [{ text: "University Website", url: "https://example.com" }]
-    },
-    2015: {
-        title: "First Internship",
-        description: "Worked as a software engineering intern.",
-        image: "https://via.placeholder.com/300",
-        links: [{ text: "Internship Details", url: "https://example.com" }]
-    },
-    2018: {
-        title: "First Full-Time Job",
-        description: "Joined XYZ Corp as a software developer.",
-        image: "https://via.placeholder.com/300",
-        links: [{ text: "Company Website", url: "https://example.com" }]
-    },
-    2021: {
-        title: "Senior Developer",
-        description: "Promoted to senior software engineer.",
-        image: "https://via.placeholder.com/300",
-        links: [{ text: "Promotion Announcement", url: "https://example.com" }]
-    },
-    2025: {
-        title: "Current Position",
-        description: "Leading projects at ABC Tech.",
-        image: "https://via.placeholder.com/300",
-        links: [{ text: "Company Blog", url: "https://example.com" }]
-    }
-};
 
 const yearsDiv = document.getElementById("timeline-years");
 const contentDiv = document.getElementById("timeline-content");
