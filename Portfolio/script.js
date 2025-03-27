@@ -86,17 +86,17 @@ const timelineData = {
 };
 
 const aboutData = {
-    education: {
-        title: "Education",
-        content: "I hold a degree in Computer Science from Example University, where I specialized in software development and algorithms."
+  	integrity: {
+        title: "Integrity",
+        content: "With a background in accounting and finance, I’ve built my career on the principles of transparency and accuracy. Early in my career, I worked for Stephen Calk, a banker who was later convicted of fraud. That experience reinforced my commitment to ethical financial practices and the importance of integrity in both business and personal conduct. Whether in finance or technology, I believe that trust is earned through accountability and a commitment to doing what is right."
     },
-    skills: {
-        title: "Skills",
-        content: "My technical skills include proficiency in JavaScript, Python, and React. I'm also experienced in database management and cloud computing."
+    community: {
+        title: "Community",
+        content: "Earning an undergraduate certificate in Urban Studies ignited my passion for transit equity and community advocacy. I’ve had the privilege of volunteering at Alderwoman Nicole Lee's freestore to help newly arrived migrants integrate into our neighborhood."
     },
-    interests: {
-        title: "Interests",
-        content: "Outside of coding, I enjoy hiking, playing chess, and exploring new technologies. I'm always eager to learn and grow."
+    data: {
+        title: "Data",
+        content: "With over a decade of experience in finance, accounting, and banking, I see financial institutions as more than just lenders—they are vast databases of fungible assets. My work has given me insight into how data shapes decision-making, from risk assessment to investment strategies. I’m fascinated by the intersection of technology and finance, constantly exploring ways to leverage data to build more transparent, efficient systems."
     }
 };
 
