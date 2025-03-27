@@ -53,11 +53,17 @@ projects.forEach((project) => {
 // Career Timeline Data and Logic
 
 const timelineData = {
+    2011: {
+        title: "Eagle Project",
+        description: "Savannah restoration for West Des Moines Parks Department. Savannah Restoration is essential because it revives native grassland ecosystems that support biodiversity and provide critical environmental services. Restoring these areas improves soil health, enhances carbon sequestration, and mitigates erosion, which in turn benefits water quality and climate stability. For humans, healthy savannahs offer recreational spaces, bolster local economies, and promote community resilience through ecosystem services. With only 2% of its remaining natural ecosystem, Iowa stands out as one of the most transformed states—its vast prairies replaced by intensive agriculture and urban development. This dramatic change highlights the importance of restoration efforts that aim to reintroduce native species and ecological functions, ultimately benefiting both people and the environment.",
+        //image: "https://via.placeholder.com/300",
+        //links: [{ text: "Internship Details", url: "https://example.com" }]
+    },
     2012: {
         title: "Started College",
-        description: "Began studies in Computer Science.",
-        image: "https://via.placeholder.com/300",
-        links: [{ text: "University Website", url: "https://example.com" }]
+        description: "Began Liberal Arts studies in Computer Science, 2-dimensional Studio Art, Urban Studies, Spanish, Economics and Business.",
+        image: "https://www.wheaton.edu",
+        links: [{ text: "Blanchard Hall", url: "wkeiideas.com/Portfolio/assets/BH.png" }]
     },
     2015: {
         title: "First Internship",
