@@ -200,6 +200,11 @@ function hasNumberInSquare(row, col, num) {
 // This function sets the board cell, updates the UI, adjusts scores, and (if special)
 // applies capturing effects.
 function placePiece(row, col, piece) {
+  if (!isValidMove(row, col, piece)) {
+    alert("Invalid move!");
+    return; // Stop execution if the move is invalid
+  }
+  
   const cellObj = { piece, owner: currentPlayer };
   board[row][col] = cellObj;
   const cellDiv = document.querySelector(`[data-row='${row}'][data-col='${col}']`);
