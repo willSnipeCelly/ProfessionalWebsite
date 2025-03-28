@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strategy Board Game</title>
-    <link rel="stylesheet" href="dulko.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Strategy Board Game</title>
+  <link rel="stylesheet" href="Dulko.css" />
 </head>
 <body>
-    <div class="game-container">
-        <div class="player-panel" id="player1-panel"></div>
-        <div class="board-container">
-            <div id="board"></div>
-        </div>
-        <div class="player-panel" id="player2-panel"></div>
-    </div>
-    <script src="dulko.js"></script>
+  <h1>Strategy Board Game</h1>
+  <p id="turnIndicator">Player 1's Turn</p>
+  <div id="gameBoard"></div>
+  <div id="pieceSelection">
+    <p>Select a piece:</p>
+    <select id="pieceDropdown"></select>
+    <button onclick="attemptPlacePiece()">Place Piece</button>
+  </div>
+  <p id="scoreDisplay">Player 1: 0 | Player 2: 0</p>
+  <script src="Dulko.js"></script>
 </body>
 </html>
