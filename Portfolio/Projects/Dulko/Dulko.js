@@ -156,8 +156,6 @@ function switchPlayer() {
 createBoard();
 updatePieceButtons(); // Initial creation of piece buttons
 
-//teeeeeeeeewwwsse
-
 // --- Attempt to Place Piece ---
 function attemptPlacePiece() {
   if (!selectedCell) {
