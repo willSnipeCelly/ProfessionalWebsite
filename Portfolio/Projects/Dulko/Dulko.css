@@ -37,7 +37,37 @@ body {
   background-color: lightcoral;
 }
 
-/* Optional: Highlight the currently selected cell */
+/* Highlight the currently selected cell */
 .selected {
   outline: 2px solid green;
+}
+
+.piece-bank {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  width: 150px; /* Adjust as needed */
+}
+
+.piece-row {
+  display: flex;
+  gap: 5px;
+}
+
+.piece-button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: #fff;
+  user-select: none;
+}
+
+.piece-button.selected {
+  border: 2px solid green;
 }
