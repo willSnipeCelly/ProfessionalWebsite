@@ -8,14 +8,20 @@
 </head>
 <body>
   <h1>Strategy Board Game</h1>
-  <p id="turnIndicator">Player 1's Turn</p>
-  <div id="gameBoard"></div>
-  <div id="pieceSelection">
-    <p>Select a piece:</p>
-    <select id="pieceDropdown"></select>
-    <button onclick="attemptPlacePiece()">Place Piece</button>
+  <div id="gameContainer">
+    <div id="player1Pieces" class="piece-bank">
+      </div>
+  
+    <div id="gameBoard">
+      </div>
+  
+    <div id="player2Pieces" class="piece-bank">
+      </div>
   </div>
-  <p id="scoreDisplay">Player 1: 0 | Player 2: 0</p>
+  
+  <div id="scoreDisplay">Player 1: 0 | Player 2: 0</div>
+  <div id="turnIndicator">Player 1's Turn</div>
+
   <script src="Dulko.js"></script>
 </body>
 </html>
