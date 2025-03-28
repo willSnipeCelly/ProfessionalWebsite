@@ -1,70 +1,43 @@
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f4f4f4;
-    font-family: Arial, sans-serif;
+  font-family: Arial, sans-serif;
+  text-align: center;
 }
 
-.game-container {
-    display: flex;
-    gap: 20px;
-}
-
-.player-panel {
-    width: 150px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-}
-
-.board-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-#board {
-    display: grid;
-    grid-template-columns: repeat(9, 50px);
-    grid-template-rows: repeat(9, 50px);
-    gap: 2px;
-    background-color: black;
-    padding: 5px;
+#gameBoard {
+  display: grid;
+  grid-template-columns: repeat(9, 50px);
+  grid-template-rows: repeat(9, 50px);
+  gap: 2px;
+  margin: 20px auto;
+  width: 460px;
 }
 
 .cell {
-    width: 50px;
-    height: 50px;
-    background-color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    border: 1px solid gray;
+  width: 50px;
+  height: 50px;
+  border: 1px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  background-color: white;
 }
 
 .deadzone {
-    background-color: black;
+  background-color: gray;
+  cursor: not-allowed;
 }
 
 .player1 {
-    background-color: lightblue;
+  background-color: lightblue;
 }
 
 .player2 {
-    background-color: lightcoral;
+  background-color: lightcoral;
 }
 
-.piece {
-    width: 40px;
-    height: 40px;
-    background-color: white;
-    border: 1px solid black;
-    text-align: center;
-    line-height: 40px;
-    cursor: pointer;
-    user-select: none;
+/* Optional: Highlight the currently selected cell */
+.selected {
+  outline: 2px solid green;
 }
