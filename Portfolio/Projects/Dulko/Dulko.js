@@ -79,6 +79,85 @@ function selectCell(row, col) {
   cellDiv.classList.add("selected");
 }
 
+// --- Piece Buttons ---
+function updatePieceButtons() {
+  const player1PiecesDiv = document.getElementById("player1Pieces");
+  const player2PiecesDiv = document.getElementById("player2Pieces");
+  player1PiecesDiv.innerHTML = "";
+  player2PiecesDiv.innerHTML = "";
+
+  for (let player = 1; player <= 2; player++) {
+    const pieces = playerPieces[player];
+    const playerDiv = player === 1 ? player1PiecesDiv : player2PiecesDiv;
+
+    for (const piece in pieces) {
+      if (pieces[piece] > 0) {
+        const button = document.createElement("div");
+        button.classList.add("piece-button");
+        button.textContent = piece;
+        button.dataset.piece = piece;
+        button.addEventListener("click", () => selectPiece(piece));
+
+        // Group buttons into rows
+        if (playerDiv.lastChild && playerDiv.lastChild.children.length < 5) {
+          playerDiv.lastChild.appendChild(button);
+        } else {
+          const row = document.createElement("div");
+          row.classList.add("piece-row");
+          row.appendChild(button);
+          playerDiv.appendChild(row);
+        }
+      }
+    }
+  }
+}
+
+function selectPiece(piece) {
+  // Remove highlight from previously selected piece (if any)
+  document.querySelectorAll(".piece-button").forEach((button) => button.classList.remove("selected"));
+  selectedPiece = piece;
+  // Highlight the selected piece
+  const pieceButton = document.querySelector(`[data-piece='${piece}']`);
+  pieceButton.classList.add("selected");
+}
+
+function attemptPlacePiece() {
+  if (!selectedCell) {
+    alert("Select a cell first!");
+    return;
+  }
+  if (!selectedPiece) {
+    alert("Select a piece first!");
+    return;
+  }
+  const { row, col } = selectedCell;
+  if (!isValidMove(row, col, selectedPiece)) {
+    alert("Invalid move!");
+    return;
+  }
+  placePiece(row, col, selectedPiece);
+  selectedCell = null;
+  selectedPiece = null;
+  // Remove any selection highlight
+  document.querySelectorAll(".cell").forEach((cell) => cell.classList.remove("selected"));
+  document.querySelectorAll(".piece-button").forEach((button) => button.classList.remove("selected"));
+  // Switch turns only if game hasn't ended
+  if (!gameEnded) switchPlayer();
+}
+
+// --- Turn Management & Score Update ---
+function switchPlayer() {
+  currentPlayer = currentPlayer === 1 ? 2 : 1;
+  document.getElementById("turnIndicator").textContent = `Player ${currentPlayer}'s Turn`;
+  updatePieceButtons();
+}
+
+// --- Initialize Game ---
+createBoard();
+updatePieceButtons(); // Initial creation of piece buttons
+
+//teeeeeeeeewwwsse
+
 // --- Attempt to Place Piece ---
 function attemptPlacePiece() {
   if (!selectedCell) {
