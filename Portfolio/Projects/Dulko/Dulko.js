@@ -138,7 +138,10 @@ function placePiece(row, col, piece) {
         }
     }
     playerScores[currentPlayer] += baseScore;
+    //call updatePieceButtons before decrementing the piece count.
+    updatePieceButtons();
     playerPieces[currentPlayer][piece]--;
+
     updateScore();
 
     if (isSpecial(piece)) {
@@ -146,7 +149,6 @@ function placePiece(row, col, piece) {
     }
 
     checkConversion(row, col);
-    updatePieceButtons();
 }
 
 // --- Move Validation ---
