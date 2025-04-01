@@ -1,73 +1,89 @@
 body {
-  font-family: Arial, sans-serif;
-  text-align: center;
+    font-family: Arial, sans-serif;
+    text-align: center;
 }
 
 #gameBoard {
-  display: grid;
-  grid-template-columns: repeat(9, 50px);
-  grid-template-rows: repeat(9, 50px);
-  gap: 2px;
-  margin: 20px auto;
-  width: 460px;
+    display: grid;
+    grid-template-columns: repeat(9, 50px);
+    grid-template-rows: repeat(9, 50px);
+    gap: 2px;
+    margin: 20px auto;
+    width: 460px;
 }
 
 .cell {
-  width: 50px;
-  height: 50px;
-  border: 1px solid black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  cursor: pointer;
-  background-color: white;
+    width: 50px;
+    height: 50px;
+    border: 1px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    background-color: white;
 }
 
 .deadzone {
-  background-color: gray;
-  cursor: not-allowed;
+    background-color: gray;
+    cursor: not-allowed;
 }
 
 .player1 {
-  background-color: lightblue;
+    background-color: lightblue;
 }
 
 .player2 {
-  background-color: lightcoral;
+    background-color: lightcoral;
 }
 
-/* Highlight the currently selected cell */
 .selected {
-  outline: 2px solid green;
+    outline: 2px solid green;
+}
+
+#gameContainer {
+    display: flex;
+    justify-content: center; /* Center the overall container */
+    align-items: flex-start; /* Align banks to the top */
+    gap: 20px; /* Space between board and banks */
 }
 
 .piece-bank {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  border: 1px solid #ccc;
-  padding: 10px;
-  width: 150px; /* Adjust as needed */
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    width: 150px;
 }
 
 .piece-row {
-  display: flex;
-  gap: 5px;
+    display: flex;
+    gap: 5px;
 }
 
 .piece-button {
-  width: 30px;
-  height: 30px;
-  border: 1px solid #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  background-color: #fff;
-  user-select: none;
+    width: 30px;
+    height: 30px;
+    border: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: #fff;
+    user-select: none;
 }
 
 .piece-button.selected {
-  border: 2px solid green;
+    border: 2px solid green;
+}
+
+/* Align Player 1's bank to the right of the board */
+#player1Pieces {
+    order: 1; /* Place Player 1's bank after the board */
+}
+
+/* Align Player 2's bank to the left of the board */
+#player2Pieces {
+    order: -1; /* Place Player 2's bank before the board */
 }
