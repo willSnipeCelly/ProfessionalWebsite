@@ -36,12 +36,29 @@ function createBoard() {
             cellDiv.classList.add("cell");
             cellDiv.dataset.row = row;
             cellDiv.dataset.col = col;
+
+            // Mark deadzone cell
             if (row === deadzone.row && col === deadzone.col) {
                 cellDiv.classList.add("deadzone");
                 board[row][col] = { deadzone: true };
             } else {
                 board[row][col] = null;
+
+                // Click event listener for cell selection
                 cellDiv.addEventListener("click", () => selectCell(row, col));
+
+                // Drag-and-drop event listeners
+                cellDiv.addEventListener("dragover", (event) => {
+                    event.preventDefault(); // Allow drop
+                });
+
+                cellDiv.addEventListener("drop", (event) => {
+                    event.preventDefault();
+                    if (selectedPiece && !board[row][col]) {
+                        placePiece(row, col, selectedPiece);
+                        selectedPiece = null;
+                    }
+                });
             }
             gameBoard.appendChild(cellDiv);
         }
@@ -65,7 +82,21 @@ function updatePieceButtons() {
                 button.classList.add("piece-button");
                 button.textContent = piece;
                 button.dataset.piece = piece;
-                button.addEventListener("click", () => selectPiece(piece));
+                button.dataset.player = player; // Add player data attribute
+
+                // Only add click event listener for the current player
+                if (player === currentPlayer) {
+                    button.addEventListener("click", () => selectPiece(piece, player));
+                }
+                
+                // Add draggable attribute and drag event listeners
+                if (player === currentPlayer) {
+                    button.draggable = true;
+                    button.addEventListener('dragstart', (event) => {
+                        event.dataTransfer.setData('text/plain', piece);
+                        selectedPiece = piece; // Set selected piece for drop
+                    });
+                }
 
                 if (playerDiv.lastChild && playerDiv.lastChild.children.length < 5) {
                     playerDiv.lastChild.appendChild(button);
@@ -80,10 +111,12 @@ function updatePieceButtons() {
     }
 }
 
-function selectPiece(piece) {
+function selectPiece(piece, player) {
+    if (player !== currentPlayer) return; // Only allow selection for current player
+
     document.querySelectorAll(".piece-button").forEach((button) => button.classList.remove("selected"));
     selectedPiece = piece;
-    const pieceButton = document.querySelector(`[data-piece='${piece}']`);
+    const pieceButton = document.querySelector(`[data-piece='${piece}'][data-player='${player}']`);
     pieceButton.classList.add("selected");
 }
 
