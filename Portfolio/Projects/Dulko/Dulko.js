@@ -82,22 +82,19 @@ function updatePieceButtons() {
                 button.classList.add("piece-button");
                 button.textContent = piece;
                 button.dataset.piece = piece;
-                button.dataset.player = player; // Add player data attribute
+                button.dataset.player = player;
 
-                // Only add click event listener for the current player
-                if (player === currentPlayer) {
-                    button.addEventListener("click", () => selectPiece(piece, player));
-                }
-                
-                // Add draggable attribute and drag event listeners
+                // Add draggable attribute and drag event listeners for current player
                 if (player === currentPlayer) {
                     button.draggable = true;
-                    button.addEventListener('dragstart', (event) => {
-                        event.dataTransfer.setData('text/plain', piece);
-                        selectedPiece = piece; // Set selected piece for drop
+                    button.addEventListener("dragstart", (event) => {
+                        event.dataTransfer.setData("text/plain", piece);
+                        selectedPiece = piece;
                     });
+                    button.addEventListener("click", () => selectPiece(piece, player));
                 }
 
+                // Group buttons into rows
                 if (playerDiv.lastChild && playerDiv.lastChild.children.length < 5) {
                     playerDiv.lastChild.appendChild(button);
                 } else {
