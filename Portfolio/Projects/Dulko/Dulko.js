@@ -26,45 +26,6 @@ let selectedCell = null; // Will hold { row, col } when the user clicks a cell
 let selectedPiece = null; // Will hold the selected piece type
 let gameEnded = false;
 
-// --- Board Initialization ---
-function createBoard() {
-    const gameBoard = document.getElementById("gameBoard");
-    for (let row = 0; row < 9; row++) {
-        board[row] = [];
-        for (let col = 0; col < 9; col++) {
-            const cellDiv = document.createElement("div");
-            cellDiv.classList.add("cell");
-            cellDiv.dataset.row = row;
-            cellDiv.dataset.col = col;
-
-            // Mark deadzone cell
-            if (row === deadzone.row && col === deadzone.col) {
-                cellDiv.classList.add("deadzone");
-                board[row][col] = { deadzone: true };
-            } else {
-                board[row][col] = null;
-
-                // Click event listener for cell selection
-                cellDiv.addEventListener("click", () => selectCell(row, col));
-
-                // Drag-and-drop event listeners
-                cellDiv.addEventListener("dragover", (event) => {
-                    event.preventDefault(); // Allow drop
-                });
-
-                cellDiv.addEventListener("drop", (event) => {
-                    event.preventDefault();
-                    if (selectedPiece && !board[row][col]) {
-                        placePiece(row, col, selectedPiece);
-                        selectedPiece = null;
-                    }
-                });
-            }
-            gameBoard.appendChild(cellDiv);
-        }
-    }
-}
-
 // --- Piece Buttons ---
 function updatePieceButtons() {
     const player1PiecesDiv = document.getElementById("player1Pieces");
@@ -84,7 +45,6 @@ function updatePieceButtons() {
                 button.dataset.piece = piece;
                 button.dataset.player = player;
 
-                // Add draggable attribute and drag event listeners for current player
                 if (player === currentPlayer) {
                     button.draggable = true;
                     button.addEventListener("dragstart", (event) => {
@@ -94,7 +54,6 @@ function updatePieceButtons() {
                     button.addEventListener("click", () => selectPiece(piece, player));
                 }
 
-                // Group buttons into rows
                 if (playerDiv.lastChild && playerDiv.lastChild.children.length < 5) {
                     playerDiv.lastChild.appendChild(button);
                 } else {
@@ -109,7 +68,7 @@ function updatePieceButtons() {
 }
 
 function selectPiece(piece, player) {
-    if (player !== currentPlayer) return; // Only allow selection for current player
+    if (player !== currentPlayer) return;
 
     document.querySelectorAll(".piece-button").forEach((button) => button.classList.remove("selected"));
     selectedPiece = piece;
@@ -117,16 +76,6 @@ function selectPiece(piece, player) {
     pieceButton.classList.add("selected");
 }
 
-// --- Cell Selection ---
-function selectCell(row, col) {
-    if (row === deadzone.row && col === deadzone.col) return;
-    document.querySelectorAll(".cell").forEach((cell) => cell.classList.remove("selected"));
-    selectedCell = { row, col };
-    const cellDiv = document.querySelector(`[data-row='${row}'][data-col='${col}']`);
-    cellDiv.classList.add("selected");
-}
-
-// --- Attempt to Place Piece ---
 function attemptPlacePiece() {
     if (!selectedCell) {
         alert("Select a cell first!");
@@ -168,17 +117,60 @@ function placePiece(row, col, piece) {
         }
     }
     playerScores[currentPlayer] += baseScore;
-    //call updatePieceButtons before decrementing the piece count.
-    updatePieceButtons();
     playerPieces[currentPlayer][piece]--;
-
     updateScore();
+    updatePieceButtons();
+}
 
-    if (isSpecial(piece)) {
-        applySpecialEffects(row, col, piece);
+function createBoard() {
+    const gameBoard = document.getElementById("gameBoard");
+    for (let row = 0; row < 9; row++) {
+        board[row] = [];
+        for (let col = 0; col < 9; col++) {
+            const cellDiv = document.createElement("div");
+            cellDiv.classList.add("cell");
+            cellDiv.dataset.row = row;
+            cellDiv.dataset.col = col;
+
+            if (row === deadzone.row && col === deadzone.col) {
+                cellDiv.classList.add("deadzone");
+                board[row][col] = { deadzone: true };
+            } else {
+                board[row][col] = null;
+
+                cellDiv.addEventListener("click", () => selectCell(row, col));
+
+                cellDiv.addEventListener("dragover", (event) => {
+                    event.preventDefault();
+                });
+
+                cellDiv.addEventListener("drop", (event) => {
+                    event.preventDefault();
+                    if (selectedPiece && !board[row][col]) {
+                        placePiece(row, col, selectedPiece);
+                        selectedPiece = null; //reset selected piece
+                    }
+                });
+            }
+            gameBoard.appendChild(cellDiv);
+        }
     }
+}
 
-    checkConversion(row, col);
+function switchPlayer() {
+    currentPlayer = currentPlayer === 1 ? 2 : 1;
+    document.getElementById("turnIndicator").textContent = `Player ${currentPlayer}'s Turn`;
+    updatePieceButtons(); //make sure this is called.
+}
+
+
+// --- Cell Selection ---
+function selectCell(row, col) {
+    if (row === deadzone.row && col === deadzone.col) return;
+    document.querySelectorAll(".cell").forEach((cell) => cell.classList.remove("selected"));
+    selectedCell = { row, col };
+    const cellDiv = document.querySelector(`[data-row='${row}'][data-col='${col}']`);
+    cellDiv.classList.add("selected");
 }
 
 // --- Move Validation ---
