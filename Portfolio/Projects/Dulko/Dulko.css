@@ -79,6 +79,10 @@ body {
     border: 2px solid green;
 }
 
+.piece-button.dragging {
+    opacity: 0.5; /* Add visual feedback for dragging */
+}
+
 /* Align Player 1's bank to the right of the board */
 #player1Pieces {
     order: -1; /* Place Player 1's bank after the board */
