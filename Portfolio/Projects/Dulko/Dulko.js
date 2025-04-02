@@ -49,7 +49,8 @@ function createBoard() {
                         attemptPlacePiece();
                     }
                 });
-
+                    
+                //desktop drag & drop
                 cellDiv.addEventListener("dragover", (event) => {
                     event.preventDefault();
                 });
@@ -62,6 +63,17 @@ function createBoard() {
                         selectedPiece = null;
                     }
                 });
+                
+                // Mobile touch events for drag-and-drop simulation
+                cellDiv.addEventListener("touchstart", (event) => {
+                    event.preventDefault();
+                    if (selectedPiece) {
+                        selectedCell = { row, col };
+                        attemptPlacePiece();
+                        selectedPiece = null;
+                    }
+                });
+                
             }
             gameBoard.appendChild(cellDiv);
         }
@@ -88,11 +100,24 @@ function updatePieceButtons() {
                 button.dataset.player = player;
 
                 if (player === currentPlayer) {
+                    
+                    //desktop drag & drop
                     button.draggable = true;
                     button.addEventListener("dragstart", (event) => {
                         event.dataTransfer.setData("text/plain", piece);
                         selectedPiece = piece;
                     });
+                    
+                    // Mobile touch events for drag-and-drop simulation
+                    button.addEventListener("touchstart", (event) => {
+                        selectedPiece = piece;
+                        button.classList.add("dragging"); // Add class for styling
+                    });
+                    button.addEventListener("touchend", (event) => {
+                        button.classList.remove("dragging");
+                    });
+
+                    //click
                     button.addEventListener("click", () => selectPiece(piece, player));
                 }
 
