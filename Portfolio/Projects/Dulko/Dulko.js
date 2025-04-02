@@ -60,7 +60,8 @@ function createBoard() {
                 cellDiv.addEventListener("drop", (event) => {
                     event.preventDefault();
                     if (selectedPiece && !board[row][col]) {
-                        placePiece(row, col, selectedPiece);
+                        attemptPlacePiece();
+                        //placePiece(row, col, selectedPiece);
                         selectedPiece = null;
                     }
                 });
