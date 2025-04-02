@@ -157,13 +157,6 @@ function createBoard() {
     }
 }
 
-function switchPlayer() {
-    currentPlayer = currentPlayer === 1 ? 2 : 1;
-    document.getElementById("turnIndicator").textContent = `Player ${currentPlayer}'s Turn`;
-    updatePieceButtons(); //make sure this is called.
-}
-
-
 // --- Cell Selection ---
 function selectCell(row, col) {
     if (row === deadzone.row && col === deadzone.col) return;
