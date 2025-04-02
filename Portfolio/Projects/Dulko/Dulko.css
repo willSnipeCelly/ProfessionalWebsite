@@ -54,7 +54,7 @@ body {
     gap: 5px;
     border: 1px solid #ccc;
     padding: 10px;
-    width: 150px;
+    width: 45px;
 }
 
 .piece-row {
@@ -64,8 +64,8 @@ body {
 }
 
 .piece-button {
-    width: 30px;
-    height: 30px;
+    width: 41px;
+    height: 41px;
     border: 1px solid #333;
     display: flex;
     align-items: center;
@@ -81,10 +81,10 @@ body {
 
 /* Align Player 1's bank to the right of the board */
 #player1Pieces {
-    order: 1; /* Place Player 1's bank after the board */
+    order: -1; /* Place Player 1's bank after the board */
 }
 
 /* Align Player 2's bank to the left of the board */
 #player2Pieces {
-    order: -1; /* Place Player 2's bank before the board */
+    order: 1; /* Place Player 2's bank before the board */
 }
