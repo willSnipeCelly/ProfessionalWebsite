@@ -26,7 +26,7 @@ let selectedCell = null; // Will hold { row, col } when the user clicks a cell
 let selectedPiece = null; // Will hold the selected piece type
 let gameEnded = false;
 
-// x-- Create Board ---
+// --- Create Board ---
 function createBoard() {
     const gameBoard = document.getElementById("gameBoard");
     for (let row = 0; row < 9; row++) {
@@ -44,12 +44,9 @@ function createBoard() {
                 board[row][col] = null;
 
                 cellDiv.addEventListener("click", () => {
-                    if (selectedPiece && selectedCell) { // Check if both piece and cell are selected
+                    if (selectedPiece) {
+                        selectedCell = { row, col };
                         attemptPlacePiece();
-                    } else if (selectedPiece) { // If only a piece is selected, select the cell
-                        selectCell(row, col);
-                    } else {
-                        selectCell(row, col);
                     }
                 });
 
@@ -60,8 +57,8 @@ function createBoard() {
                 cellDiv.addEventListener("drop", (event) => {
                     event.preventDefault();
                     if (selectedPiece && !board[row][col]) {
+                        selectedCell = { row, col };
                         attemptPlacePiece();
-                        //placePiece(row, col, selectedPiece);
                         selectedPiece = null;
                     }
                 });
