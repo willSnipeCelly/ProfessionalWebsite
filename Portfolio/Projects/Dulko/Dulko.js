@@ -119,10 +119,12 @@ function selectPiece(piece, player) {
 }
 
 function attemptPlacePiece() {
+    /* i don't think this should matter because you can select either order.
+    
     if (!selectedCell) {
         alert("Select a cell first!");
         return;
-    }
+    }*/
     if (!selectedPiece) {
         alert("Select a piece first!");
         return;
