@@ -67,25 +67,25 @@ const timelineData = {
     },
     2015: {
         title: "First Internship",
-        description: "Worked as a software engineering intern.",
+        description: "coming soon",
         image: "https://via.placeholder.com/300",
         links: [{ text: "Internship Details", url: "https://example.com" }]
     },
     2018: {
         title: "First Full-Time Job",
-        description: "Joined XYZ Corp as a software developer.",
+        description: "coming soon",
         image: "https://via.placeholder.com/300",
         links: [{ text: "Company Website", url: "https://example.com" }]
     },
     2021: {
         title: "Senior Developer",
-        description: "Promoted to senior software engineer.",
+        description: "coming soon",
         image: "https://via.placeholder.com/300",
         links: [{ text: "Promotion Announcement", url: "https://example.com" }]
     },
     2025: {
         title: "Current Position",
-        description: "Leading projects at ABC Tech.",
+        description: "coming soon",
         image: "https://via.placeholder.com/300",
         links: [{ text: "Company Blog", url: "https://example.com" }]
     }
