@@ -29,6 +29,15 @@ let gameEnded = false;
 // --- Create Board ---
 function createBoard() {
     const gameBoard = document.getElementById("gameBoard");
+        gameBoard.innerHTML = ""; // Clear existing board
+
+    // Create 9 subgrid elements
+    const subgrids = Array.from({ length: 9 }, () => document.createElement("div"));
+    subgrids.forEach((subgrid) => {
+        subgrid.classList.add("subgrid");
+        gameBoard.appendChild(subgrid);
+    });
+
     for (let row = 0; row < 9; row++) {
         board[row] = [];
         for (let col = 0; col < 9; col++) {
@@ -75,7 +84,10 @@ function createBoard() {
                 });
                 
             }
-            gameBoard.appendChild(cellDiv);
+            
+            // Determine which subgrid to insert the cell into
+            const subgridIndex = Math.floor(row / 3) * 3 + Math.floor(col / 3);
+            subgrids[subgridIndex].appendChild(cellDiv);
         }
     }
 }
