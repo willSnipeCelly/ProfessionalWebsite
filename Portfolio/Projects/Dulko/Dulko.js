@@ -219,7 +219,9 @@ function isValidMove(row, col, piece) {
     if (board[row][col] !== null) return false;
     if (row === deadzone.row && col === deadzone.col) return false;
 
-    if (isSpecial(piece)) {
+    if (piece === "A") {
+        return true; //Aces can be placed anywhere
+	} else if (isSpecial(piece)) {
         if (hasSpecialInRow(row) || hasSpecialInCol(col) || hasSpecialInSquare(row, col)) return false;
         if (piece === "B" && hasSpecialInDiagonals(row, col)) return false;
     } else {
