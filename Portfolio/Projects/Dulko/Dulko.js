@@ -122,40 +122,7 @@ function placePiece(row, col, piece) {
     updatePieceButtons();
 }
 
-function createBoard() {
-    const gameBoard = document.getElementById("gameBoard");
-    for (let row = 0; row < 9; row++) {
-        board[row] = [];
-        for (let col = 0; col < 9; col++) {
-            const cellDiv = document.createElement("div");
-            cellDiv.classList.add("cell");
-            cellDiv.dataset.row = row;
-            cellDiv.dataset.col = col;
-
-            if (row === deadzone.row && col === deadzone.col) {
-                cellDiv.classList.add("deadzone");
-                board[row][col] = { deadzone: true };
-            } else {
-                board[row][col] = null;
-
-                cellDiv.addEventListener("click", () => selectCell(row, col));
-
-                cellDiv.addEventListener("dragover", (event) => {
-                    event.preventDefault();
-                });
-
-                cellDiv.addEventListener("drop", (event) => {
-                    event.preventDefault();
-                    if (selectedPiece && !board[row][col]) {
-                        placePiece(row, col, selectedPiece);
-                        selectedPiece = null; //reset selected piece
-                    }
-                });
-            }
-            gameBoard.appendChild(cellDiv);
-        }
-    }
-}
+attemptPlacePiece
 
 // --- Cell Selection ---
 function selectCell(row, col) {
