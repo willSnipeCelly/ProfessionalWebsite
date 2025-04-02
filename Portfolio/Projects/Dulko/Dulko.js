@@ -44,8 +44,10 @@ function createBoard() {
                 board[row][col] = null;
 
                 cellDiv.addEventListener("click", () => {
-                    if (selectedPiece) {
+                    if (selectedPiece && selectedCell) { // Check if both piece and cell are selected
                         attemptPlacePiece();
+                    } else if (selectedPiece) { // If only a piece is selected, select the cell
+                        selectCell(row, col);
                     } else {
                         selectCell(row, col);
                     }
