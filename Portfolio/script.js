@@ -26,7 +26,7 @@ const projects = [
   },
   {
     title: "Dulko",
-    description: "Guess the wikipedia article from the information in the article.",
+    description: "Strategy board game (WIP).",
     liveUrl: "/Projects/Dulko/Dulko.html",
     repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Portfolio/Projects/Dulko.html",
   },
