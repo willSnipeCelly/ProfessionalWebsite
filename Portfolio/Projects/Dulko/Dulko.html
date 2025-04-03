@@ -1,27 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dulko</title>
-  <link rel="stylesheet" href="Dulko.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Strategy Board Game</title>
+    <link rel="stylesheet" href="Dulko.css" />
 </head>
 <body>
-  <h1>Dulko</h1>
-  <div id="gameContainer">
-    <div id="player1Pieces" class="piece-bank">
-      </div>
-  
-    <div id="gameBoard">
-      </div>
-  
-    <div id="player2Pieces" class="piece-bank">
-      </div>
-  </div>
-  
-  <div id="scoreDisplay">Player 1: 0 | Player 2: 0</div>
-  <div id="turnIndicator">Player 1's Turn</div>
+    <h1>Dulko</h1>
 
-  <script src="Dulko.js"></script>
+    <div id="gameModeModal" class="modal">
+        <div class="modal-content">
+            <h2>Select Game Mode</h2>
+            <button id="twoPlayerBtn">Two Player</button>
+            <button id="computerBtn">Challenge Computer</button>
+            <div id="difficultyOptions" style="display: none;">
+                <h2>Select Difficulty</h2>
+                <button class="difficultyBtn" data-difficulty="easy">Easy</button>
+                <button class="difficultyBtn" data-difficulty="medium">Medium</button>
+                <button class="difficultyBtn" data-difficulty="hard">Hard</button>
+            </div>
+            <div id="mlOption" style="display: none;">
+                <h2>Machine Learning Opponent</h2>
+                <p>Coming Soon</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="gameContainer">
+        <div id="player1Pieces" class="piece-bank"></div>
+        <div id="gameBoard"></div>
+        <div id="player2Pieces" class="piece-bank"></div>
+    </div>
+
+    <div id="scoreDisplay">Player 1: 0 | Player 2: 0</div>
+    <div id="turnIndicator">Player 1's Turn</div>
+
+    <script src="Dulko.js"></script>
 </body>
 </html>
