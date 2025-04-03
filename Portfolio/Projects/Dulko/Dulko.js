@@ -104,7 +104,7 @@ function updatePieceButtons() {
         const playerDiv = player === 1 ? player1PiecesDiv : player2PiecesDiv;
 
         for (const piece in pieces) {
-            if (pieces[piece] > 0) {
+            for (let i = 0; i < pieces[piece]; i++) {
                 const button = document.createElement("div");
                 button.classList.add("piece-button");
                 button.textContent = piece;
