@@ -3,6 +3,7 @@ const board = []; // 9x9 grid; each cell is either null or an object { piece, ow
 const deadzone = { row: Math.floor(Math.random() * 9), col: Math.floor(Math.random() * 9) };
 let currentPlayer = 1;
 let playerScores = { 1: 0, 2: 0 };
+let moveCount = 0; //track # of computer moves
 
 const initialPieces = {
     K: 1,
@@ -25,6 +26,66 @@ let playerPieces = {
 let selectedCell = null; // Will hold { row, col } when the user clicks a cell
 let selectedPiece = null; // Will hold the selected piece type
 let gameEnded = false;
+
+const gameModeModal = document.getElementById("gameModeModal");
+const twoPlayerBtn = document.getElementById("twoPlayerBtn");
+const computerBtn = document.getElementById("computerBtn");
+const difficultyOptions = document.getElementById("difficultyOptions");
+const difficultyBtns = document.querySelectorAll(".difficultyBtn");
+
+let gameMode = null;
+let difficulty = null;
+
+// Function to start a new game
+function startNewGame() {
+    gameModeModal.style.display = "flex";
+    gameMode = null;
+    difficulty = null;
+    resetGame();
+}
+
+//Function to reset the game to its initial state
+function resetGame(){
+    currentPlayer = 1;
+    playerScores = { 1: 0, 2: 0 };
+    playerPieces = { 1: { ...initialPieces }, 2: { ...initialPieces } };
+    board.forEach(row=> row.fill(null));
+    updateScore();
+    updatePieceButtons();
+    createBoard();
+    document.getElementById("turnIndicator").textContent = `Player ${currentPlayer}'s Turn`;
+}
+
+// Event listeners for game mode selection
+twoPlayerBtn.addEventListener("click", () => {
+    gameMode = "twoPlayer";
+    gameModeModal.style.display = "none";
+});
+
+computerBtn.addEventListener("click", () => {
+    gameMode = "computer";
+    difficultyOptions.style.display = "block";
+});
+
+// Event listeners for difficulty selection
+difficultyBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+        difficulty = btn.dataset.difficulty;
+        gameModeModal.style.display = "none";
+        startGame(); // Start the game with the chosen mode and difficulty
+    });
+});
+
+// Function to start the game
+function startGame() {
+    gameModeModal.style.display = "none";
+    moveCount = 0; // Reset move count
+
+    if (gameMode === "computer") {
+        // Implement computer logic based on difficulty
+        currentPlayer = 1;
+    }
+}
 
 // --- Create Board ---
 function createBoard() {
@@ -574,11 +635,196 @@ function convertSquare(row, col) {
     }
 }
 
+// Function to make a computer move
+function computerMove() {
+    let row, col, piece;
+
+    if (difficulty === "easy") {
+        [row, col, piece] = easyMove();
+    } else if (difficulty === "medium") {
+        [row, col, piece] = mediumMove();
+    } else if (difficulty === "hard") {
+        [row, col, piece] = hardMove();
+    }
+
+    if (row !== null && col !== null && piece !== null) {
+        selectedPiece = piece;
+        selectedCell = { row, col };
+        attemptPlacePiece();
+        moveCount++;
+    } else {
+        alert("Computer cannot make a move.");
+    }
+}
+
+// Easy mode: Randomly select and place a piece
+function easyMove() {
+    const availablePieces = Object.keys(playerPieces[2]).filter(piece => playerPieces[2][piece] > 0);
+    if (availablePieces.length === 0) return [null, null, null];
+
+    const piece = availablePieces[Math.floor(Math.random() * availablePieces.length)];
+    const emptyCells = [];
+    for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+            if (!board[row][col] && isValidMove(row, col, piece)) {
+                emptyCells.push({ row, col });
+            }
+        }
+    }
+
+    if (emptyCells.length === 0) return [null, null, null];
+    const { row, col } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    return [row, col, piece];
+}
+
+// Medium mode: Mix of easy and hard, increasing hard strategy over time
+function mediumMove() {
+    const hardChance = 0.5 + (moveCount * 0.02); // Increase chance of hard strategy
+    if (Math.random() < hardChance) {
+        return hardMove();
+    } else {
+        return easyMove();
+    }
+}
+
+// Hard mode: Prioritize completing rows/columns/squares, then capturing many pieces, then highest value piece
+function hardMove() {
+    // 1. Check for rows/columns/squares to complete
+    let move = findCompletingMove();
+    if (move) return move;
+
+    // 2. Check for captures of 4 or more pieces with special pieces
+    move = findLargeCaptureMove();
+    if (move) return move;
+
+    // 3. Play highest available number piece
+    return findHighestNumberMove();
+}
+
+// Helper function to find a move that completes a row, column, or square
+function findCompletingMove() {
+    const availablePieces = Object.keys(playerPieces[2]).filter(piece => playerPieces[2][piece] > 0);
+    for (const piece of availablePieces) {
+        for (let row = 0; row < 9; row++) {
+            for (let col = 0; col < 9; col++) {
+                if (!board[row][col] && isValidMove(row, col, piece)) {
+                    board[row][col] = { piece, owner: 2 }; // Simulate move
+                    if (isCompleteRow(row) || isCompleteCol(col) || isCompleteSquare(row, col)) {
+                        board[row][col] = null; // Undo simulation
+                        return [row, col, piece];
+                    }
+                    board[row][col] = null; // Undo simulation
+                }
+            }
+        }
+    }
+    return null;
+}
+
+// Helper function to find a move that captures 4 or more pieces
+function findLargeCaptureMove() {
+    const specialPieces = ["Q", "K", "B"];
+    for (const piece of specialPieces) {
+        if (playerPieces[2][piece] > 0) {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (!board[row][col] && isValidMove(row, col, piece)) {
+                        let capturedCount = 0;
+                        if (piece === "Q") {
+                            // Simulate Queen capture
+                            capturedCount = simulateCaptureRowCol(row, col);
+                        } else if (piece === "K") {
+                            // Simulate King capture
+                            capturedCount = simulateCaptureAdjacent(row, col);
+                        } else if (piece === "B") {
+                            // Simulate Bishop capture
+                            capturedCount = simulateCaptureDiagonals(row, col);
+                        }
+                        if (capturedCount >= 4) {
+                            return [row, col, piece];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return null;
+}
+
+// Helper function to find the highest available number piece
+function findHighestNumberMove() {
+    const numberPieces = Object.keys(playerPieces[2]).filter(piece => !isNaN(parseInt(piece)) && playerPieces[2][piece] > 0).sort((a, b) => b - a);
+    for (const piece of numberPieces) {
+        for (let row = 0; row < 9; row++) {
+            for (let col = 0; col < 9; col++) {
+                if (!board[row][col] && isValidMove(row, col, piece)) {
+                    return [row, col, piece];
+                }
+            }
+        }
+    }
+    return null;
+}
+
+// Helper functions to simulate captures
+function simulateCaptureRowCol(row, col) {
+    let count = 0;
+    for (let i = 0; i < 9; i++) {
+        if (i !== col && board[row][i] && board[row][i].owner !== 2) count++;
+        if (i !== row && board[i][col] && board[i][col].owner !== 2) count++;
+    }
+    return count;
+}
+
+function simulateCaptureAdjacent(row, col) {
+    let count = 0;
+    const directions = [
+        [-1, -1], [-1, 0], [-1, 1],
+        [0, -1], [0, 1],
+        [1, -1], [1, 0], [1, 1],
+    ];
+    directions.forEach(([dr, dc]) => {
+        const r = row + dr;
+        const c = col + dc;
+        if (r >= 0 && r < 9 && c >= 0 && c < 9 && board[r][c] && board[r][c].owner !== 2) count++;
+    });
+    return count;
+}
+
+function simulateCaptureDiagonals(row, col) {
+    let count = 0;
+    let r = row - 1, c = col - 1;
+    while (r >= 0 && c >= 0) {
+        if (board[r][c] && board[r][c].owner !== 2) count++;
+        r--; c--;
+    }
+    r = row - 1; c = col + 1;
+    while (r >= 0 && c < 9) {
+        if (board[r][c] && board[r][c].owner !== 2) count++;
+        r--; c++;
+    }
+    r = row + 1; c = col - 1;
+    while (r < 9 && c >= 0) {
+        if (board[r][c] && board[r][c].owner !== 2) count++;
+        r++; c--;
+    }
+    r = row + 1; c = col + 1;
+    while (r < 9 && c < 9) {
+        if (board[r][c] && board[r][c].owner !== 2) count++;
+        r++; c++;
+    }
+    return count;
+}
+
 // --- Turn Management & Score Update ---
 function switchPlayer() {
     currentPlayer = currentPlayer === 1 ? 2 : 1;
     document.getElementById("turnIndicator").textContent = `Player ${currentPlayer}'s Turn`;
     updatePieceButtons();
+
+    if (gameMode === "computer" && currentPlayer === 2) {
+        setTimeout(computerMove, 500); // Delay computer move
+    }
 }
 
 function updateScore() {
@@ -595,3 +841,4 @@ function disableBoard() {
 // --- Initialize Game ---
 createBoard();
 updatePieceButtons();
+startNewGame();
