@@ -90,6 +90,28 @@ body {
     opacity: 0.5; /* Add visual feedback for dragging */
 }
 
+.modal {
+    display: flex;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 400px;
+}
+
 /* Align Player 1's bank to the right of the board */
 #player1Pieces {
     order: -1; /* Place Player 1's bank after the board */
