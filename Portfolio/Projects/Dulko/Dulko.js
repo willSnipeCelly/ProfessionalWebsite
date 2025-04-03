@@ -201,6 +201,60 @@ function placePiece(row, col, piece) {
     playerPieces[currentPlayer][piece]--;
     updateScore();
     updatePieceButtons();
+    
+        if (isSpecial(piece)) {
+        applySpecialEffects(row, col, piece);
+    }
+
+    checkConversion(row, col);
+
+    // Update Ace values if a King is placed
+    if (piece === "K") {
+        updateAceValues(row, col);
+    }
+    
+}
+
+function updateAceValues(row, col) {
+    // Update Aces in the same row
+    for (let c = 0; c < 9; c++) {
+        if (board[row][c] && board[row][c].piece === "A") {
+            const cell = board[row][c];
+            if (hasKingInRow(row) || hasKingInCol(c) || hasKingInSquare(row, c)) {
+                playerScores[cell.owner] -= 1;
+                playerScores[cell.owner] += 11;
+                updateScore();
+            }
+        }
+    }
+
+    // Update Aces in the same column
+    for (let r = 0; r < 9; r++) {
+        if (board[r][col] && board[r][col].piece === "A") {
+            const cell = board[r][col];
+            if (hasKingInRow(r) || hasKingInCol(col) || hasKingInSquare(r, col)) {
+                playerScores[cell.owner] -= 1;
+                playerScores[cell.owner] += 11;
+                updateScore();
+            }
+        }
+    }
+
+    // Update Aces in the same square
+    const startRow = Math.floor(row / 3) * 3;
+    const startCol = Math.floor(col / 3) * 3;
+    for (let r = startRow; r < startRow + 3; r++) {
+        for (let c = startCol; c < startCol + 3; c++) {
+            if (board[r][c] && board[r][c].piece === "A") {
+                const cell = board[r][c];
+                if (hasKingInRow(r) || hasKingInCol(c) || hasKingInSquare(r, c)) {
+                    playerScores[cell.owner] -= 1;
+                    playerScores[cell.owner] += 11;
+                    updateScore();
+                }
+            }
+        }
+    }
 }
 
 attemptPlacePiece
@@ -342,18 +396,18 @@ function hasKingInSquare(row, col) {
 // --- Special Effects ---
 function applySpecialEffects(row, col, piece) {
     if (piece === "Q") {
-        captureRowColSquare(row, col);
+        captureRowCol(row, col); // Capture row and column for Queen
     } else if (piece === "K") {
-        captureAdjacent(row, col);
+        captureAdjacent(row, col); // Capture adjacent cells for King
     } else if (piece === "B") {
-        captureDiagonals(row, col);
+        captureDiagonals(row, col); // Capture diagonals for Bishop
     }
 }
 
 function captureCell(row, col) {
+    if (row < 0 || row > 8 || col < 0 || col > 8) return; // Prevent out of bounds
     const cell = board[row][col];
-    if (!cell || !cell.piece || cell.deadzone) return;
-    if (cell.owner === currentPlayer) return;
+    if (!cell || !cell.piece || cell.deadzone || cell.owner === currentPlayer) return;
 
     let value = 0;
     if (!isSpecial(cell.piece)) {
@@ -380,6 +434,18 @@ function captureCell(row, col) {
     }
 }
 
+function captureRowCol(row, col) {
+    for (let i = 0; i < 9; i++) {
+        if (i !== col && board[row][i] && board[row][i].owner !== currentPlayer) {
+            captureCell(row, i);
+        }
+        if (i !== row && board[i][col] && board[i][col].owner !== currentPlayer) {
+            captureCell(i, col);
+        }
+    }
+}
+
+/* i think this isnt used
 function captureRowColSquare(row, col) {
     const toCapture = new Set();
     for (let c = 0; c < 9; c++) {
@@ -403,7 +469,7 @@ function captureRowColSquare(row, col) {
         captureCell(r, c);
     });
 }
-
+*/
 function captureAdjacent(row, col) {
     const directions = [
         [-1, -1], [-1, 0], [-1, 1],
@@ -480,14 +546,18 @@ function isCompleteSquare(row, col) {
 function convertRow(row) {
     for (let col = 0; col < 9; col++) {
         if (row === deadzone.row && col === deadzone.col) continue;
-        if (board[row][col] && board[row][col].piece && board[row][col].owner !== currentPlayer) captureCell(row, col);
+        if (board[row][col] && board[row][col].piece && board[row][col].owner !== currentPlayer) {
+            captureCell(row, col);
+        }
     }
 }
 
 function convertCol(col) {
     for (let row = 0; row < 9; row++) {
         if (row === deadzone.row && col === deadzone.col) continue;
-        if (board[row][col] && board[row][col].piece && board[row][col].owner !== currentPlayer) captureCell(row, col);
+        if (board[row][col] && board[row][col].piece && board[row][col].owner !== currentPlayer) {
+            captureCell(row, col);
+        }
     }
 }
 
@@ -497,7 +567,9 @@ function convertSquare(row, col) {
     for (let r = startRow; r < startRow + 3; r++) {
         for (let c = startCol; c < startCol + 3; c++) {
             if (r === deadzone.row && c === deadzone.col) continue;
-            if (board[r][c] && board[r][c].piece && board[r][c].owner !== currentPlayer) captureCell(r, c);
+            if (board[r][c] && board[r][c].piece && board[r][c].owner !== currentPlayer) {
+                captureCell(r, c);
+            }
         }
     }
 }
