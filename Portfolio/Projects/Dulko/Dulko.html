@@ -26,9 +26,15 @@
                 Move Validation: Numbered Pieces (2-8): These pieces follow Sudoku rules. You cannot place a number in a row, column, or 3x3 square if that number already exists there. King (K), Queen (Q), Bishop (B): These special pieces cannot be placed in a row, column, or 3x3 square if another special piece (K, Q, or B) is already there. The Bishop also cannot be placed on a diagonal if there is another special piece on the diagonal. Ace (A): The Ace is a wild card. It can be placed on any square, including the deadzone, regardless of the other pieces on the board. Scoring: Numbered Pieces: The score value is the number on the piece. King (K): 50 points. Queen (Q): No immediate points, but it has capture abilities. Bishop (B): No immediate points, but it has capture abilities. Ace (A): 1 point, unless there is a King in the same row, column, or 3x3 square, in which case it is worth 11 points. If a king is placed, any aces in the same row, column, or square are updated to be worth 11 points.
             </p>
             <p>
-                Special Piece Abilities: Queen (Q): Captures all opponent pieces in the same row, column, and 3x3 square. King (K): Captures all opponent pieces in the eight adjacent squares. Bishop (B): Captures all opponent pieces along the two diagonals it occupies. Capturing: When you capture an opponent's piece, you gain its point value, and your opponent loses it. The captured piece becomes yours. Row, Column, and Square Conversions: If you fill an entire row, column, or 3x3 square with your pieces, you capture all opponent pieces within that row, column, or square. King Capture: If a player captures the opponent's King, the game ends immediately, and the capturing player wins. Game End: The game ends when one player captures the opponent's King. The player with the highest score wins. Important Notes: The "deadzone" cannot have any pieces placed on it except an ace. Once a King is placed, all Aces in the same row, column or square are worth 11 points. Aces are wild cards, and can be placed anywhere. If an Ace is captured, it's score is determined by if there is a king in the same row, column or square at the time of capture. Have fun playing Dulko!
+                Capturing: When you capture an opponent's piece, you gain its point value, and your opponent loses it. The captured piece becomes yours. If you fill an entire row, column, or 3x3 square with your pieces, you capture all opponent pieces within that row, column, or square.
             </p>
             <p>
+                Special Piece Abilities: Queen (Q): Captures all opponent pieces in the same row, column, and 3x3 square. King (K): Captures all opponent pieces in the eight adjacent squares. Bishop (B): Captures all opponent pieces along the two diagonals it occupies. 
+            </p>
+            <p>
+                Game End: The game ends when one player captures the opponent's King or win a player has no remaining legal moves. The player with the highest score wins. Have fun playing Dulko!
+            </p>
+                
             <button id="closeRulesBtn">Close</button>
         </div>
     </div>
