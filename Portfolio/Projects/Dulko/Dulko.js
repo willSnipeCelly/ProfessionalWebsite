@@ -5,11 +5,15 @@ let currentPlayer = 1;
 let playerScores = { 1: 0, 2: 0 };
 let moveCount = 0; //track # of computer moves
 
+const rulesBtn = document.getElementById("rulesBtn");
+const rulesModal = document.getElementById("rulesModal");
+const closeRulesBtn = document.getElementById("closeRulesBtn");
+
 const initialPieces = {
     K: 1,
     Q: 1,
     B: 1,
-    A: 2,
+    A: 3,
     2: 5,
     3: 5,
     4: 5,
@@ -825,6 +829,49 @@ function switchPlayer() {
     if (gameMode === "computer" && currentPlayer === 2) {
         setTimeout(computerMove, 500); // Delay computer move
     }
+
+    if (!checkGameEnd()) {
+        if (gameMode === "computer" && currentPlayer === 2) {
+            setTimeout(() => {
+                if (!checkComputerMovePossible()) {
+                    alert("Computer forfeits!");
+                    startNewGame();
+                }
+            }, 1000);
+        }
+    }
+}
+
+function checkGameEnd() {
+    if (!checkPlayerMovePossible(currentPlayer)) {
+        alert(`Player ${currentPlayer} has no moves left!`);
+        displayScores();
+        startNewGame();
+        return true;
+    }
+    return false;
+}
+
+function checkPlayerMovePossible(player) {
+    const availablePieces = Object.keys(playerPieces[player]).filter(piece => playerPieces[player][piece] > 0);
+    for (const piece of availablePieces) {
+        for (let row = 0; row < 9; row++) {
+            for (let col = 0; col < 9; col++) {
+                if (!board[row][col] && isValidMove(row, col, piece)) {
+                    return true; // Found a valid move
+                }
+            }
+        }
+    }
+    return false; // No valid moves found
+}
+
+function checkComputerMovePossible() {
+    return checkPlayerMovePossible(2);
+}
+
+function displayScores() {
+    alert(`Game Over! Player 1: ${playerScores[1]} | Player 2: ${playerScores[2]}`);
 }
 
 function updateScore() {
@@ -837,6 +884,15 @@ function disableBoard() {
         cell.replaceWith(cell.cloneNode(true));
     });
 }
+
+// Event listeners for rules modal
+rulesBtn.addEventListener("click", () => {
+    rulesModal.style.display = "flex";
+});
+
+closeRulesBtn.addEventListener("click", () => {
+    rulesModal.style.display = "none";
+});
 
 // --- Initialize Game ---
 createBoard();
