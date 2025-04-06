@@ -333,20 +333,37 @@ function selectCell(row, col) {
     cellDiv.classList.add("selected");
 }
 
-// --- Move Validation ---
 function isValidMove(row, col, piece) {
     if (board[row][col] !== null) return false;
     if (row === deadzone.row && col === deadzone.col) return false;
 
     if (piece === "A") {
-        return true; //Aces can be placed anywhere
-	} else if (isSpecial(piece)) {
+        return true; // Aces can be placed anywhere
+    } else if (isSpecial(piece)) {
         if (hasSpecialInRow(row) || hasSpecialInCol(col) || hasSpecialInSquare(row, col)) return false;
         if (piece === "B" && hasSpecialInDiagonals(row, col)) return false;
+        if (piece === "K" && isKingAdjacent(row, col)) return false; // Prevent adjacent Kings
     } else {
         if (hasNumberInRow(row, piece) || hasNumberInCol(col, piece) || hasNumberInSquare(row, col, piece)) return false;
     }
     return true;
+}
+
+function isKingAdjacent(row, col) {
+    const directions = [
+        [-1, -1], [-1, 0], [-1, 1],
+        [0, -1], [0, 1],
+        [1, -1], [1, 0], [1, 1],
+    ];
+
+    for (const [dr, dc] of directions) {
+        const r = row + dr;
+        const c = col + dc;
+        if (r >= 0 && r < 9 && c >= 0 && c < 9 && board[r][c] && board[r][c].piece === "K") {
+            return true; // King is adjacent
+        }
+    }
+    return false; // No Kings are adjacent
 }
 
 // --- Helper Functions ---
