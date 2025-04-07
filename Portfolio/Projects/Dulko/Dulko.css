@@ -117,6 +117,10 @@ body {
     display: block;
 }
 
+.neutral-nine {
+    background-color: lightgray;
+}
+
 /* Align Player 1's bank to the right of the board */
 #player1Pieces {
     order: -1; /* Place Player 1's bank after the board */
