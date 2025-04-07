@@ -157,6 +157,22 @@ function createBoard() {
     }
 }
 
+function initializeNines() {
+    const numNines = Math.random() < 0.5 ? 2 : 4;
+    for (let i = 0; i < numNines; i++) {
+        let row, col;
+        do {
+            row = Math.floor(Math.random() * 9);
+            col = Math.floor(Math.random() * 9);
+        } while (board[row][col] || (row === deadzone.row && col === deadzone.col));
+
+        board[row][col] = { piece: "9", owner: 0, captureValue: 9 }; // Neutral 9
+        const cellDiv = document.querySelector(`[data-row='${row}'][data-col='${col}']`);
+        cellDiv.textContent = "9";
+        cellDiv.classList.add("neutral-nine"); // Add a class for styling
+    }
+}
+
 // --- Piece Buttons ---
 function updatePieceButtons() {
     const player1PiecesDiv = document.getElementById("player1Pieces");
@@ -487,12 +503,15 @@ function applySpecialEffects(row, col, piece) {
 }
 
 function captureCell(row, col) {
-    if (row < 0 || row > 8 || col < 0 || col > 8) return; // Prevent out of bounds
+    if (row < 0 || row > 8 || col < 0 || col > 8) return;
     const cell = board[row][col];
     if (!cell || !cell.piece || cell.deadzone || cell.owner === currentPlayer) return;
 
     let value = 0;
-    if (!isSpecial(cell.piece)) {
+    if (cell.piece === "9") {
+        value = cell.captureValue;
+        cell.captureValue += 9; // Increment capture value
+    } else if (!isSpecial(cell.piece)) {
         value = parseInt(cell.piece);
     } else {
         if (cell.piece === "K") value = 50;
@@ -504,7 +523,7 @@ function captureCell(row, col) {
     cell.owner = currentPlayer;
 
     const cellDiv = document.querySelector(`[data-row='${row}'][data-col='${col}']`);
-    cellDiv.classList.remove("player1", "player2");
+    cellDiv.classList.remove("player1", "player2", "neutral-nine");
     cellDiv.classList.add(currentPlayer === 1 ? "player1" : "player2");
 
     updateScore();
