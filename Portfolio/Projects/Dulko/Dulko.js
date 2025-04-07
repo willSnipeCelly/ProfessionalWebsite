@@ -83,10 +83,10 @@ difficultyBtns.forEach((btn) => {
 // Function to start the game
 function startGame() {
     gameModeModal.style.display = "none";
-    moveCount = 0; // Reset move count
+    moveCount = 0;
+    initializeNines(); // Generate 9's
 
     if (gameMode === "computer") {
-        // Implement computer logic based on difficulty
         currentPlayer = 1;
     }
 }
@@ -103,10 +103,6 @@ function createBoard() {
         gameBoard.appendChild(subgrid);
     });
 
-
-    //initialize 9's
-    initializeNines();
-    //
     for (let row = 0; row < 9; row++) {
         board[row] = [];
         for (let col = 0; col < 9; col++) {
