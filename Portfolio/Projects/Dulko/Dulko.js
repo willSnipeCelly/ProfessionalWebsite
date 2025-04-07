@@ -511,6 +511,7 @@ function captureCell(row, col) {
     if (cell.piece === "9") {
         value = cell.captureValue;
         cell.captureValue += 9; // Increment capture value
+        cellDiv.textContent = cell.captureValue;
     } else if (!isSpecial(cell.piece)) {
         value = parseInt(cell.piece);
     } else {
