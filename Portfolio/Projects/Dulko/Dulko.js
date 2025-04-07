@@ -103,6 +103,10 @@ function createBoard() {
         gameBoard.appendChild(subgrid);
     });
 
+
+    //initialize 9's
+    initializeNines();
+    //
     for (let row = 0; row < 9; row++) {
         board[row] = [];
         for (let col = 0; col < 9; col++) {
