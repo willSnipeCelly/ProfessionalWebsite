@@ -66,7 +66,7 @@ function resetGame(){
 twoPlayerBtn.addEventListener("click", () => {
     gameMode = "twoPlayer";
     gameModeModal.style.display = "none";
-    startGame(); two play start
+    startGame(); //two play start
 });
 
 computerBtn.addEventListener("click", () => {
