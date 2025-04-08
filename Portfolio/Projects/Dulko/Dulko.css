@@ -117,10 +117,12 @@ body {
     border: 2px dashed currentColor;
 }
 
+/*Old rul Button Styling
 #rulesBtn {
     margin: 10px auto;
     display: block;
 }
+*/
 
 .cell.computer-move {
     border: 3px solid #007bff; /* Can change color down the road*/
@@ -131,45 +133,49 @@ body {
 }
 
 /*Button styling*/
-        #buttonContainer {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 10px auto;
-        }
-        #rulesBtn, #newGameBtn {
-            padding: 8px 15px;
-            cursor: pointer;
-        }
-        #rulesModal {
-            display: none; /* Initially hidden */
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-            justify-content: center;
-            align-items: center;
-            z-index: 10; /* Ensure it's on top */
-        }
-        .modal-content {
-            background-color: #fefefe;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            border-radius: 5px;
-            position: relative;
-        }
-        #closeRulesBtn {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 20px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+#buttonContainer {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px auto;
+}
+
+#rulesBtn, #newGameBtn {
+    padding: 8px 15px;
+    cursor: pointer;
+}
+
+#rulesModal {
+    display: none; /* Initially hidden */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    justify-content: center;
+    align-items: center;
+    z-index: 10; /* Ensure it's on top */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 5px;
+    position: relative;
+}
+
+#closeRulesBtn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
 
 /* Align Player 1's bank to the right of the board */
 #player1Pieces {
