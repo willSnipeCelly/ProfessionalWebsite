@@ -112,6 +112,11 @@ body {
     max-width: 400px;
 }
 
+.piece-button.dragging {
+    opacity: 0.6;
+    border: 2px dashed currentColor;
+}
+
 #rulesBtn {
     margin: 10px auto;
     display: block;
