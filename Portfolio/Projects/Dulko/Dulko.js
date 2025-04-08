@@ -119,11 +119,11 @@ function createBoard() {
 
                 cellDiv.addEventListener("click", () => {
                     if (selectedPiece) {
-                        selectedCell = { row, col };
+                        selectedCell = { row, col }; // Set selectedCell here
                         attemptPlacePiece();
                     }
                 });
-                    
+
                 //desktop drag & drop
                 cellDiv.addEventListener("dragover", (event) => {
                     event.preventDefault();
@@ -132,24 +132,23 @@ function createBoard() {
                 cellDiv.addEventListener("drop", (event) => {
                     event.preventDefault();
                     if (selectedPiece && !board[row][col]) {
-                        selectedCell = { row, col };
+                        selectedCell = { row, col }; // Set selectedCell here
                         attemptPlacePiece();
                         selectedPiece = null;
                     }
                 });
-                
+
                 // Mobile touch events for drag-and-drop simulation
                 cellDiv.addEventListener("touchstart", (event) => {
                     event.preventDefault();
                     if (selectedPiece) {
-                        selectedCell = { row, col };
+                        selectedCell = { row, col }; // Set selectedCell here
                         attemptPlacePiece();
                         selectedPiece = null;
                     }
                 });
-                
             }
-            
+
             // Determine which subgrid to insert the cell into
             const subgridIndex = Math.floor(row / 3) * 3 + Math.floor(col / 3);
             subgrids[subgridIndex].appendChild(cellDiv);
