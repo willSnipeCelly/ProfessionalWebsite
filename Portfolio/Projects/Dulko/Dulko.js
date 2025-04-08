@@ -508,22 +508,24 @@ function captureCell(row, col) {
     if (!cell || !cell.piece || cell.deadzone || cell.owner === currentPlayer) return;
 
     let value = 0;
+    const cellDiv = document.querySelector(`[data-row='${row}'][data-col='${col}']`);
+
     if (cell.piece === "9") {
         value = cell.captureValue;
         cell.captureValue += 9; // Increment capture value
-        cellDiv.textContent = cell.captureValue;
+        cellDiv.textContent = cell.captureValue; // Update the text on the board
     } else if (!isSpecial(cell.piece)) {
         value = parseInt(cell.piece);
     } else {
         if (cell.piece === "K") value = 50;
         else if (cell.piece === "A") value = 1;
+        else if (cell.piece === "Q" || cell.piece === "B") value = 0; // Queens and Bishops have no inherent point value on capture
     }
 
     playerScores[currentPlayer] += value;
     playerScores[cell.owner] -= value;
     cell.owner = currentPlayer;
 
-    const cellDiv = document.querySelector(`[data-row='${row}'][data-col='${col}']`);
     cellDiv.classList.remove("player1", "player2", "neutral-nine");
     cellDiv.classList.add(currentPlayer === 1 ? "player1" : "player2");
 
