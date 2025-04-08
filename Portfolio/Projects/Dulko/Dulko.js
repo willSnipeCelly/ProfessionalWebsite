@@ -66,6 +66,7 @@ function resetGame(){
 twoPlayerBtn.addEventListener("click", () => {
     gameMode = "twoPlayer";
     gameModeModal.style.display = "none";
+    startGame(); two play start
 });
 
 computerBtn.addEventListener("click", () => {
@@ -90,6 +91,12 @@ function startGame() {
 
     if (gameMode === "computer") {
         currentPlayer = 1;
+        if (difficulty) {
+            // Optionally, start first move after a delay
+            // setTimeout(computerMove, 1000);
+        }
+    } else if (gameMode === "twoPlayer") {
+        currentPlayer = 1; // Player 1 starts
     }
 }
 
