@@ -27,6 +27,7 @@ let playerPieces = {
     2: { ...initialPieces },
 };
 
+let lastComputerMove = null; //Tracks computer move so user can see where they went
 let selectedCell = null; // Will hold { row, col } when the user clicks a cell
 let selectedPiece = null; // Will hold the selected piece type
 let gameEnded = false;
@@ -681,6 +682,15 @@ function convertSquare(row, col) {
 
 // Function to make a computer move
 function computerMove() {
+    // Clear previous computer move highlight
+    if (lastComputerMove) {
+        const lastCellDiv = document.querySelector(`[data-row='${lastComputerMove.row}'][data-col='${lastComputerMove.col}']`);
+        if (lastCellDiv) {
+            lastCellDiv.classList.remove("computer-move");
+        }
+        lastComputerMove = null;
+    }
+
     let row, col, piece;
 
     if (difficulty === "easy") {
@@ -696,6 +706,13 @@ function computerMove() {
         selectedCell = { row, col };
         attemptPlacePiece();
         moveCount++;
+
+        // Store and highlight the computer's move
+        lastComputerMove = { row, col };
+        const currentCellDiv = document.querySelector(`[data-row='${row}'][data-col='${col}']`);
+        if (currentCellDiv) {
+            currentCellDiv.classList.add("computer-move");
+        }
     } else {
         alert("Computer cannot make a move.");
     }
