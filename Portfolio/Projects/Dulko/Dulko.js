@@ -8,6 +8,7 @@ let moveCount = 0; //track # of computer moves
 const rulesBtn = document.getElementById("rulesBtn");
 const rulesModal = document.getElementById("rulesModal");
 const closeRulesBtn = document.getElementById("closeRulesBtn");
+const newGameBtn = document.getElementById("newGameBtn");
 
 const initialPieces = {
     K: 1,
@@ -950,6 +951,9 @@ rulesBtn.addEventListener("click", () => {
 closeRulesBtn.addEventListener("click", () => {
     rulesModal.style.display = "none";
 });
+
+// Event listener for new game button
+newGameBtn.addEventListener("click", startNewGame);
 
 // --- Initialize Game ---
 createBoard();
