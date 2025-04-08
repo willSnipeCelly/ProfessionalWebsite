@@ -122,6 +122,10 @@ body {
     display: block;
 }
 
+.cell.computer-move {
+    border: 3px solid #007bff; /* Can change color down the road*/
+}
+
 .neutral-nine {
     background-color: lightgray;
 }
