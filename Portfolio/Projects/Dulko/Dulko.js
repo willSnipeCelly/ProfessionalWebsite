@@ -96,7 +96,6 @@ function createBoard() {
     const gameBoard = document.getElementById("gameBoard");
         gameBoard.innerHTML = ""; // Clear existing board
 
-    // Create 9 subgrid elements
     const subgrids = Array.from({ length: 9 }, () => document.createElement("div"));
     subgrids.forEach((subgrid) => {
         subgrid.classList.add("subgrid");
@@ -117,39 +116,38 @@ function createBoard() {
             } else {
                 board[row][col] = null;
 
+                // Click for non-drag interaction
                 cellDiv.addEventListener("click", () => {
                     if (selectedPiece) {
-                        selectedCell = { row, col }; // Set selectedCell here
+                        selectedCell = { row, col };
                         attemptPlacePiece();
                     }
                 });
 
-                //desktop drag & drop
+                // Desktop Drag & Drop
                 cellDiv.addEventListener("dragover", (event) => {
                     event.preventDefault();
                 });
-
                 cellDiv.addEventListener("drop", (event) => {
                     event.preventDefault();
                     if (selectedPiece && !board[row][col]) {
-                        selectedCell = { row, col }; // Set selectedCell here
+                        selectedCell = { row, col };
                         attemptPlacePiece();
                         selectedPiece = null;
                     }
                 });
 
-                // Mobile touch events for drag-and-drop simulation
-                cellDiv.addEventListener("touchstart", (event) => {
+                // Mobile Touch Events for "Drop" Simulation
+                cellDiv.addEventListener("touchend", (event) => {
                     event.preventDefault();
-                    if (selectedPiece) {
-                        selectedCell = { row, col }; // Set selectedCell here
+                    if (selectedPiece && !board[row][col]) {
+                        selectedCell = { row, col };
                         attemptPlacePiece();
                         selectedPiece = null;
                     }
                 });
             }
 
-            // Determine which subgrid to insert the cell into
             const subgridIndex = Math.floor(row / 3) * 3 + Math.floor(col / 3);
             subgrids[subgridIndex].appendChild(cellDiv);
         }
@@ -192,24 +190,28 @@ function updatePieceButtons() {
                 button.dataset.player = player;
 
                 if (player === currentPlayer) {
-                    
-                    //desktop drag & drop
+                    // Desktop Drag & Drop
                     button.draggable = true;
                     button.addEventListener("dragstart", (event) => {
                         event.dataTransfer.setData("text/plain", piece);
                         selectedPiece = piece;
+                        button.classList.add("dragging"); // Add class for styling during drag
                     });
-                    
-                    // Mobile touch events for drag-and-drop simulation
-                    button.addEventListener("touchstart", (event) => {
-                        selectedPiece = piece;
-                        button.classList.add("dragging"); // Add class for styling
-                    });
-                    button.addEventListener("touchend", (event) => {
+                    button.addEventListener("dragend", () => {
                         button.classList.remove("dragging");
                     });
 
-                    //click
+                    // Mobile Touch Events for Drag-and-Drop Simulation
+                    button.addEventListener("touchstart", (event) => {
+                        selectedPiece = piece;
+                        button.classList.add("dragging"); // Add class for styling during "drag"
+                    });
+                    button.addEventListener("touchend", (event) => {
+                        button.classList.remove("dragging");
+                        // We'll handle the "drop" on the board cell's touchend
+                    });
+
+                    // Click for non-drag interaction
                     button.addEventListener("click", () => selectPiece(piece, player));
                 }
 
