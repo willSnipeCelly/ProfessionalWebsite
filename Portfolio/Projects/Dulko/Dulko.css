@@ -133,6 +133,7 @@ body {
 }
 
 /*Button styling*/
+
 #buttonContainer {
     display: flex;
     justify-content: center;
@@ -164,6 +165,9 @@ body {
     border: 1px solid #888;
     width: 80%;
     max-width: 500px;
+    /* Add these lines for the scrollbar */
+    max-height: 80vh; /* Set a maximum height relative to the viewport height */
+    overflow-y: auto; /* Enable vertical scrolling when content overflows */
     border-radius: 5px;
     position: relative;
 }
