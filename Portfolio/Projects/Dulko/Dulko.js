@@ -802,33 +802,26 @@ function easyMove(timeout) {
 // Medium mode: Mix of easy and hard, increasing hard strategy over time
 function mediumMove(timeout) {
     return new Promise(async (resolve) => {
-        const hardChance = 0.5 + (moveCount * 0.02);
         const startTime = Date.now();
 
-        // Attempt hard move first
-        if (Math.random() < hardChance) {
-            const hardResult = hardMove();
-            if (hardResult && hardResult[0] !== null) {
-                return resolve([...hardResult, true]);
-            }
+        // Attempt easy move first
+        const easyResult = await easyMove(timeout);
+        if (easyResult[3]) { // easyResult[3] is the 'found' flag
+            return resolve(easyResult);
         }
 
-        // Attempt easy move if hard move fails or wasn't attempted
+        // If easy move times out (doesn't find a move within the timeout), attempt fallback hard move
         const remainingTime = timeout - (Date.now() - startTime);
-        if (remainingTime > 0) {
-            const easyResult = await easyMove(remainingTime);
-            if (easyResult[3]) { // easyResult[3] is the 'found' flag
-                return resolve(easyResult);
+        if (remainingTime <= 0) {
+            console.log("Medium: Easy move timed out, attempting fallback hard move.");
+            const fallbackMove = findFirstValidMove(2);
+            if (fallbackMove) {
+                return resolve([fallbackMove.row, fallbackMove.col, fallbackMove.piece, true]);
             }
         }
 
-        // Fallback if both hard and easy attempts time out or fail
-        const fallbackMove = findFirstValidMove(2);
-        if (fallbackMove) {
-            resolve([fallbackMove.row, fallbackMove.col, fallbackMove.piece, true]);
-        } else {
-            resolve([null, null, null, false]);
-        }
+        // If easy move didn't find a move within the initial timeout, and fallback also fails
+        resolve([null, null, null, false]);
     });
 }
 
