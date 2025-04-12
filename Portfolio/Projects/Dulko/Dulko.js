@@ -689,6 +689,7 @@ function convertSquare(row, col) {
 }
 
 // Function to make a computer move
+
 function computerMove() {
     // Clear previous computer move highlight
     if (lastComputerMove) {
@@ -699,21 +700,17 @@ function computerMove() {
         lastComputerMove = null;
     }
 
-    let row = null;
-    let col = null;
-    let piece = null;
-    let moveFound = false;
+    let row, col, piece;
 
     if (difficulty === "easy") {
-        [row, col, piece, moveFound] = easyMove(250); // Timeout of 500ms
+        [row, col, piece] = easyMove();
     } else if (difficulty === "medium") {
-        [row, col, piece, moveFound] = mediumMove(500); // Timeout of 1000ms
+        [row, col, piece] = mediumMove();
     } else if (difficulty === "hard") {
-        [row, col, piece] = hardMove(); // Hard mode doesn't need a timeout for its strategy
-        moveFound = (row !== null && col !== null && piece !== null);
+        [row, col, piece] = hardMove();
     }
 
-    if (moveFound) {
+    if (row !== null && col !== null && piece !== null) {
         selectedPiece = piece;
         selectedCell = { row, col };
         attemptPlacePiece();
@@ -726,103 +723,38 @@ function computerMove() {
             currentCellDiv.classList.add("computer-move");
         }
     } else {
-        console.warn(`Computer (Difficulty: ${difficulty}) timed out trying to find a move. Attempting fallback.`);
-        // Fallback: Implement a simplified hard strategy - find the first valid move
-        const fallbackMove = findFirstValidMove(2);
-        if (fallbackMove) {
-            selectedPiece = fallbackMove.piece;
-            selectedCell = { row: fallbackMove.row, col: fallbackMove.col };
-            attemptPlacePiece();
-            moveCount++;
-            lastComputerMove = { row: fallbackMove.row, col: fallbackMove.col };
-            const currentCellDiv = document.querySelector(`[data-row='${fallbackMove.row}'][data-col='${fallbackMove.col}']`);
-            if (currentCellDiv) {
-                currentCellDiv.classList.add("computer-move");
-            }
-        } else {
-            alert("Computer cannot make a move even with fallback!");
-        }
+        alert("Computer cannot make a move.");
     }
-}
-
-function findFirstValidMove(player) {
-    const availablePieces = Object.keys(playerPieces[player]).filter(p => playerPieces[player][p] > 0);
-    for (const piece of availablePieces) {
-        for (let row = 0; row < 9; row++) {
-            for (let col = 0; col < 9; col++) {
-                if (!board[row][col] && isValidMove(row, col, piece)) {
-                    return { row, col, piece };
-                }
-            }
-        }
-    }
-    return null;
 }
 
 // Easy mode: Randomly select and place a piece
-function easyMove(timeout) {
-    return new Promise((resolve) => {
-        const startTime = Date.now();
-        const availablePieces = Object.keys(playerPieces[2]).filter(piece => playerPieces[2][piece] > 0);
+function easyMove() {
+    const availablePieces = Object.keys(playerPieces[2]).filter(piece => playerPieces[2][piece] > 0);
+    if (availablePieces.length === 0) return [null, null, null];
 
-        function findMove() {
-            if (Date.now() - startTime > timeout) {
-                resolve([null, null, null, false]); // Timed out
-                return;
-            }
-
-            if (availablePieces.length === 0) {
-                resolve([null, null, null, false]);
-                return;
-            }
-
-            const piece = availablePieces[Math.floor(Math.random() * availablePieces.length)];
-            const emptyCells = [];
-            for (let row = 0; row < 9; row++) {
-                for (let col = 0; col < 9; col++) {
-                    if (!board[row][col] && isValidMove(row, col, piece)) {
-                        emptyCells.push({ row, col });
-                    }
-                }
-            }
-
-            if (emptyCells.length > 0) {
-                const { row, col } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                resolve([row, col, piece, true]);
-            } else {
-                // Try again after a short delay
-                setTimeout(findMove, 50);
+    const piece = availablePieces[Math.floor(Math.random() * availablePieces.length)];
+    const emptyCells = [];
+    for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+            if (!board[row][col] && isValidMove(row, col, piece)) {
+                emptyCells.push({ row, col });
             }
         }
+    }
 
-        findMove();
-    });
+    if (emptyCells.length === 0) return [null, null, null];
+    const { row, col } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    return [row, col, piece];
 }
 
 // Medium mode: Mix of easy and hard, increasing hard strategy over time
-function mediumMove(timeout) {
-    return new Promise(async (resolve) => {
-        const startTime = Date.now();
-
-        // Attempt easy move first
-        const easyResult = await easyMove(timeout);
-        if (easyResult[3]) { // easyResult[3] is the 'found' flag
-            return resolve(easyResult);
-        }
-
-        // If easy move times out (doesn't find a move within the timeout), attempt fallback hard move
-        const remainingTime = timeout - (Date.now() - startTime);
-        if (remainingTime <= 0) {
-            console.log("Medium: Easy move timed out, attempting fallback hard move.");
-            const fallbackMove = findFirstValidMove(2);
-            if (fallbackMove) {
-                return resolve([fallbackMove.row, fallbackMove.col, fallbackMove.piece, true]);
-            }
-        }
-
-        // If easy move didn't find a move within the initial timeout, and fallback also fails
-        resolve([null, null, null, false]);
-    });
+function mediumMove() {
+    const hardChance = 0.5 + (moveCount * 0.02); // Increase chance of hard strategy
+    if (Math.random() < hardChance) {
+        return hardMove();
+    } else {
+        return easyMove();
+    }
 }
 
 // Hard mode: Prioritize completing rows/columns/squares, then capturing many pieces, then highest value piece
