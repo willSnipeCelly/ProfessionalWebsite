@@ -800,43 +800,35 @@ function easyMove(timeout) {
 }
 
 // Medium mode: Mix of easy and hard, increasing hard strategy over time
-
 function mediumMove(timeout) {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
         const hardChance = 0.5 + (moveCount * 0.02);
         const startTime = Date.now();
 
-        function attemptMove() {
-            if (Date.now() - startTime > timeout) {
-                const fallbackMove = findFirstValidMove(2);
-                if (fallbackMove) {
-                    resolve([fallbackMove.row, fallbackMove.col, fallbackMove.piece, true]);
-                } else {
-                    resolve([null, null, null, false]);
-                }
-                return;
+        // Attempt hard move first
+        if (Math.random() < hardChance) {
+            const hardResult = hardMove();
+            if (hardResult && hardResult[0] !== null) {
+                return resolve([...hardResult, true]);
             }
-
-            if (Math.random() < hardChance) {
-                const hardResult = hardMove();
-                if (hardResult && hardResult[0] !== null) {
-                    resolve([...hardResult, true]);
-                    return;
-                }
-            }
-
-            const easyResultPromise = easyMove(Math.max(0, timeout - (Date.now() - startTime))); // Remaining time
-            easyResultPromise.then(([row, col, piece, found]) => {
-                if (found) {
-                    resolve([row, col, piece, true]);
-                } else {
-                    // If easy move failed within the remaining time, fallback will happen in computerMove
-                    resolve([null, null, null, false]);
-                }
-            });
         }
 
-        attemptMove();
+        // Attempt easy move if hard move fails or wasn't attempted
+        const remainingTime = timeout - (Date.now() - startTime);
+        if (remainingTime > 0) {
+            const easyResult = await easyMove(remainingTime);
+            if (easyResult[3]) { // easyResult[3] is the 'found' flag
+                return resolve(easyResult);
+            }
+        }
+
+        // Fallback if both hard and easy attempts time out or fail
+        const fallbackMove = findFirstValidMove(2);
+        if (fallbackMove) {
+            resolve([fallbackMove.row, fallbackMove.col, fallbackMove.piece, true]);
+        } else {
+            resolve([null, null, null, false]);
+        }
     });
 }
 
