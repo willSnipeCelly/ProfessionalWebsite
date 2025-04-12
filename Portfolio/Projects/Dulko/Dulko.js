@@ -722,8 +722,10 @@ function computerMove() {
         if (currentCellDiv) {
             currentCellDiv.classList.add("computer-move");
         }
+    } else if (difficulty !== "hard"{
+        [row, col, piece] = hardMove();
     } else {
-        alert("Computer cannot make a move.");
+        alert("cannodt make move!");
     }
 }
 
