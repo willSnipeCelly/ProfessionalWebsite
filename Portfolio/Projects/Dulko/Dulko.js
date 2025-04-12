@@ -705,9 +705,9 @@ function computerMove() {
     let moveFound = false;
 
     if (difficulty === "easy") {
-        [row, col, piece, moveFound] = easyMove(500); // Timeout of 500ms
+        [row, col, piece, moveFound] = easyMove(250); // Timeout of 500ms
     } else if (difficulty === "medium") {
-        [row, col, piece, moveFound] = mediumMove(1000); // Timeout of 1000ms
+        [row, col, piece, moveFound] = mediumMove(500); // Timeout of 1000ms
     } else if (difficulty === "hard") {
         [row, col, piece] = hardMove(); // Hard mode doesn't need a timeout for its strategy
         moveFound = (row !== null && col !== null && piece !== null);
