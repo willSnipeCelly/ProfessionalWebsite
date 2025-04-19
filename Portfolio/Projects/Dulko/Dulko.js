@@ -762,71 +762,236 @@ function mediumMove() {
 // Hard mode: Prioritize completing rows/columns/squares, then capturing many pieces, then highest value piece
 function hardMove() {
     // 1. Check for rows/columns/squares to complete
-    let move = findCompletingMove();
+    let move = findCompletingMove(getRandomStart());
     if (move) return move;
 
     // 2. Check for captures of 4 or more pieces with special pieces
-    move = findLargeCaptureMove();
+    move = findLargeCaptureMove(getRandomStart());
     if (move) return move;
 
     // 3. Play highest available number piece
-    return findHighestNumberMove();
+    return findHighestNumberMove(); // No need to randomize here, we're just picking the highest value
 }
 
-// Helper function to find a move that completes a row, column, or square
-function findCompletingMove() {
-    const availablePieces = Object.keys(playerPieces[2]).filter(piece => playerPieces[2][piece] > 0);
-    for (const piece of availablePieces) {
-        for (let row = 0; row < 9; row++) {
-            for (let col = 0; col < 9; col++) {
-                if (!board[row][col] && isValidMove(row, col, piece)) {
-                    board[row][col] = { piece, owner: 2 }; // Simulate move
-                    if (isCompleteRow(row) || isCompleteCol(col) || isCompleteSquare(row, col)) {
-                        board[row][col] = null; // Undo simulation
-                        return [row, col, piece];
+function getRandomStart() {
+    const startRow = Math.floor(Math.random() * 9);
+    const startCol = Math.floor(Math.random() * 9);
+    return { row: startRow, col: startCol };
+}
+
+function findCompletingMove(start) {
+    const { row: startRow, col: startCol } = start || { row: 0, col: 0 }; // Default to top-left if no start provided
+
+    // Iterate through rows starting from startRow
+    for (let r = startRow; r < 9; r++) {
+        // Check row completion
+        const emptyInRow = [];
+        const playerPiecesInRow = [];
+        for (let c = 0; c < 9; c++) {
+            if (!board[r][c]) {
+                emptyInRow.push({ row: r, col: c });
+            } else if (board[r][c].owner === 2) {
+                playerPiecesInRow.push(board[r][c].piece);
+            }
+        }
+        if (emptyInRow.length === 1 && playerPiecesInRow.length >= 4) {
+            const pieceToPlay = playerPieces[2].hasOwnProperty(playerPiecesInRow[0]) && playerPieces[2][playerPiecesInRow[0]] > 0 ? playerPiecesInRow[0] : null;
+            if (pieceToPlay && isValidMove(emptyInRow[0].row, emptyInRow[0].col, pieceToPlay)) {
+                return [emptyInRow[0].row, emptyInRow[0].col, pieceToPlay];
+            }
+        }
+    }
+    // Iterate through rows from the beginning up to startRow
+    for (let r = 0; r < startRow; r++) {
+        // Check row completion
+        const emptyInRow = [];
+        const playerPiecesInRow = [];
+        for (let c = 0; c < 9; c++) {
+            if (!board[r][c]) {
+                emptyInRow.push({ row: r, col: c });
+            } else if (board[r][c].owner === 2) {
+                playerPiecesInRow.push(board[r][c].piece);
+            }
+        }
+        if (emptyInRow.length === 1 && playerPiecesInRow.length >= 4) {
+            const pieceToPlay = playerPieces[2].hasOwnProperty(playerPiecesInRow[0]) && playerPieces[2][playerPiecesInRow[0]] > 0 ? playerPiecesInRow[0] : null;
+            if (pieceToPlay && isValidMove(emptyInRow[0].row, emptyInRow[0].col, pieceToPlay)) {
+                return [emptyInRow[0].row, emptyInRow[0].col, pieceToPlay];
+            }
+        }
+    }
+
+    // Iterate through columns starting from startCol
+    for (let c = startCol; c < 9; c++) {
+        // Check column completion
+        const emptyInCol = [];
+        const playerPiecesInCol = [];
+        for (let r = 0; r < 9; r++) {
+            if (!board[r][c]) {
+                emptyInCol.push({ row: r, col: c });
+            } else if (board[r][c].owner === 2) {
+                playerPiecesInCol.push(board[r][c].piece);
+            }
+        }
+        if (emptyInCol.length === 1 && playerPiecesInCol.length >= 4) {
+            const pieceToPlay = playerPieces[2].hasOwnProperty(playerPiecesInCol[0]) && playerPieces[2][playerPiecesInCol[0]] > 0 ? playerPiecesInCol[0] : null;
+            if (pieceToPlay && isValidMove(emptyInCol[0].row, emptyInCol[0].col, pieceToPlay)) {
+                return [emptyInCol[0].row, emptyInCol[0].col, pieceToPlay];
+            }
+        }
+    }
+    // Iterate through columns from the beginning up to startCol
+    for (let c = 0; c < startCol; c++) {
+        // Check column completion
+        const emptyInCol = [];
+        const playerPiecesInCol = [];
+        for (let r = 0; r < 9; r++) {
+            if (!board[r][c]) {
+                emptyInCol.push({ row: r, col: c });
+            } else if (board[r][c].owner === 2) {
+                playerPiecesInCol.push(board[r][c].piece);
+            }
+        }
+        if (emptyInCol.length === 1 && playerPiecesInCol.length >= 4) {
+            const pieceToPlay = playerPieces[2].hasOwnProperty(playerPiecesInCol[0]) && playerPieces[2][playerPiecesInCol[0]] > 0 ? playerPiecesInCol[0] : null;
+            if (pieceToPlay && isValidMove(emptyInCol[0].row, emptyInCol[0].col, pieceToPlay)) {
+                return [emptyInCol[0].row, emptyInCol[0].col, pieceToPlay];
+            }
+        }
+    }
+
+    // Iterate through 3x3 squares starting from the square containing (startRow, startCol)
+    const startSquareRow = Math.floor(startRow / 3) * 3;
+    const startSquareCol = Math.floor(startCol / 3) * 3;
+
+    for (let i = 0; i < 3; i++) {
+        const squareRow = startSquareRow + (i % 3);
+        const squareCol = startSquareCol + Math.floor(i / 3) * 3;
+
+        const emptyInSquare = [];
+        const playerPiecesInSquare = [];
+        for (let r = squareRow; r < squareRow + 3; r++) {
+            for (let c = squareCol; c < squareCol + 3; c++) {
+                if (!board[r][c]) {
+                    emptyInSquare.push({ row: r, col: c });
+                } else if (board[r][c].owner === 2) {
+                    playerPiecesInSquare.push(board[r][c].piece);
+                }
+            }
+        }
+        if (emptyInSquare.length === 1 && playerPiecesInSquare.length >= 4) {
+            const pieceToPlay = playerPieces[2].hasOwnProperty(playerPiecesInSquare[0]) && playerPieces[2][playerPiecesInSquare[0]] > 0 ? playerPiecesInSquare[0] : null;
+            if (pieceToPlay && isValidMove(emptyInSquare[0].row, emptyInSquare[0].col, pieceToPlay)) {
+                return [emptyInSquare[0].row, emptyInSquare[0].col, pieceToPlay];
+            }
+        }
+    }
+    // Iterate through remaining squares
+    for (let r = 0; r < 9; r += 3) {
+        for (let c = 0; c < 9; c += 3) {
+            if (Math.floor(r / 3) * 3 === startSquareRow && Math.floor(c / 3) * 3 === startSquareCol) continue; // Skip the starting square
+
+            const emptyInSquare = [];
+            const playerPiecesInSquare = [];
+            for (let sr = r; sr < r + 3; sr++) {
+                for (let sc = c; sc < c + 3; sc++) {
+                    if (!board[sr][sc]) {
+                        emptyInSquare.push({ row: sr, col: sc });
+                    } else if (board[sr][sc].owner === 2) {
+                        playerPiecesInSquare.push(board[sr][sc].piece);
                     }
-                    board[row][col] = null; // Undo simulation
+                }
+            }
+            if (emptyInSquare.length === 1 && playerPiecesInSquare.length >= 4) {
+                const pieceToPlay = playerPieces[2].hasOwnProperty(playerPiecesInSquare[0]) && playerPieces[2][playerPiecesInSquare[0]] > 0 ? playerPiecesInSquare[0] : null;
+                if (pieceToPlay && isValidMove(emptyInSquare[0].row, emptyInSquare[0].col, pieceToPlay)) {
+                    return [emptyInSquare[0].row, emptyInSquare[0].col, pieceToPlay];
                 }
             }
         }
     }
+
     return null;
 }
 
-// Helper function to find a move that captures 4 or more pieces
-function findLargeCaptureMove() {
-    const specialPieces = ["Q", "K", "B"];
+function findLargeCaptureMove(start) {
+    const { row: startRow, col: startCol } = start || { row: 0, col: 0 };
+    const specialPieces = Object.keys(playerPieces[2]).filter(p => isSpecial(p) && playerPieces[2][p] > 0);
+    let bestMove = null;
+    let maxCaptures = -1;
+
     for (const piece of specialPieces) {
-        if (playerPieces[2][piece] > 0) {
-            for (let row = 0; row < 9; row++) {
-                for (let col = 0; col < 9; col++) {
-                    if (!board[row][col] && isValidMove(row, col, piece)) {
-                        let capturedCount = 0;
-                        if (piece === "Q") {
-                            // Simulate Queen capture
-                            capturedCount = simulateCaptureRowCol(row, col);
-                        } else if (piece === "K") {
-                            // Simulate King capture
-                            capturedCount = simulateCaptureAdjacent(row, col);
-                        } else if (piece === "B") {
-                            // Simulate Bishop capture
-                            capturedCount = simulateCaptureDiagonals(row, col);
-                        }
-                        if (capturedCount >= 4) {
-                            return [row, col, piece];
-                        }
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                if (!board[r][c] && isValidMove(r, c, piece)) {
+                    let capturedCount = 0;
+                    if (piece === "Q") {
+                        capturedCount += countCapturesRowCol(r, c, 2);
+                    } else if (piece === "K") {
+                        capturedCount += countCapturesAdjacent(r, c, 2);
+                    } else if (piece === "B") {
+                        capturedCount += countCapturesDiagonals(r, c, 2);
+                    }
+
+                    if (capturedCount >= 4 && capturedCount > maxCaptures) {
+                        maxCaptures = capturedCount;
+                        bestMove = [r, c, piece];
                     }
                 }
             }
         }
     }
-    return null;
+    return bestMove;
 }
 
-// Helper function to find the highest available number piece
+function countCapturesRowCol(row, col, player) {
+    let count = 0;
+    const opponent = player === 1 ? 2 : 1;
+    for (let i = 0; i < 9; i++) {
+        if (i !== col && board[row][i] && board[row][i].owner === opponent) count++;
+        if (i !== row && board[i][col] && board[i][col].owner === opponent) count++;
+    }
+    return count;
+}
+
+function countCapturesAdjacent(row, col, player) {
+    let count = 0;
+    const opponent = player === 1 ? 2 : 1;
+    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]];
+    directions.forEach(([dr, dc]) => {
+        const r = row + dr;
+        const c = col + dc;
+        if (r >= 0 && r < 9 && c >= 0 && c < 9 && board[r][c] && board[r][c].owner === opponent) {
+            count++;
+        }
+    });
+    return count;
+}
+
+function countCapturesDiagonals(row, col, player) {
+    let count = 0;
+    const opponent = player === 1 ? 2 : 1;
+    const diagonals = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+    diagonals.forEach(([dr, dc]) => {
+        for (let i = 1; row + dr * i >= 0 && row + dr * i < 9 && col + dc * i >= 0 && col + dc * i < 9; i++) {
+            if (board[row + dr * i][col + dc * i] && board[row + dr * i][col + dc * i].owner === opponent) {
+                count++;
+            } else if (board[row + dr * i][col + dc * i] && board[row + dr * i][col + dc * i].owner === player) {
+                break; // Stop if we hit our own piece
+            } else if (board[row + dr * i][col + dc * i] === null) {
+                continue; // Continue along the diagonal
+            }
+        }
+    });
+    return count;
+}
+
 function findHighestNumberMove() {
-    const numberPieces = Object.keys(playerPieces[2]).filter(piece => !isNaN(parseInt(piece)) && playerPieces[2][piece] > 0).sort((a, b) => b - a);
-    for (const piece of numberPieces) {
+    const availableNumberPieces = Object.keys(playerPieces[2])
+        .filter(p => !isSpecial(p) && playerPieces[2][p] > 0)
+        .sort((a, b) => parseInt(b) - parseInt(a));
+
+    for (const piece of availableNumberPieces) {
         for (let row = 0; row < 9; row++) {
             for (let col = 0; col < 9; col++) {
                 if (!board[row][col] && isValidMove(row, col, piece)) {
