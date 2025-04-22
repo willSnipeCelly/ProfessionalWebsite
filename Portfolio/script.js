@@ -13,6 +13,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
+import { getFirestore } from "firebase/firestore";
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+
+const db = getFirestore(app);
+const auth = getAuth(app);
+
 // Firebase Auth UI Logic
 const authButton = document.getElementById("auth-button");
 
