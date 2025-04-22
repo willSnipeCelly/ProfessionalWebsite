@@ -60,7 +60,15 @@
     <footer class="bg-dark text-light text-center p-3">
         <p>&copy; 2025 My Portfolio</p>
     </footer>
-	
+    	
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <!-- Firebase SDK for Analytics -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+    <!-- Auth and compat -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
     <script>
 		const firebaseConfig = {
             apiKey: "AIzaSyAPlN22DA2jT6VWKmxIU63988dxQ5eurf0",
@@ -75,6 +83,7 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        const db = firebase.firestore();
     </script>
     <script src="script.js"></script>
 </body>
