@@ -1,3 +1,30 @@
+// Firebase Auth UI Logic
+const authButton = document.getElementById("auth-button");
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    // Logged in
+    authButton.textContent = "Logout";
+    authButton.onclick = () => auth.signOut();
+  } else {
+    // Not logged in
+    authButton.textContent = "Login";
+    authButton.onclick = () => {
+      const email = prompt("Enter email:");
+      const password = prompt("Enter password:");
+      auth.signInWithEmailAndPassword(email, password)
+        .catch(error => {
+          if (error.code === "auth/user-not-found") {
+            // Create account if user doesn't exist
+            auth.createUserWithEmailAndPassword(email, password);
+          } else {
+            alert("Login error: " + error.message);
+          }
+        });
+    };
+  }
+});
+
 // Project data
 const projects = [
   {
