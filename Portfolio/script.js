@@ -1,3 +1,18 @@
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAPlN22DA2jT6VWKmxIU63988dxQ5eurf0",
+  authDomain: "wkeiideas-ab3c2.firebaseapp.com",          
+  projectId: "wkeiideas-ab3c2",
+  storageBucket: "wkeiideas-ab3c2.firebasestorage.app",          
+  messagingSenderId: "964279254643",
+	appId: "1:964279254643:web:59ef31a342c165a2cf7406",
+  measurementId: "G-G31NT87CDY"
+};
+    
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
 // Firebase Auth UI Logic
 const authButton = document.getElementById("auth-button");
 
