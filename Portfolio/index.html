@@ -60,7 +60,38 @@
     <footer class="bg-dark text-light text-center p-3">
         <p>&copy; 2025 My Portfolio</p>
     </footer>
-    	
+    
+    <div id="auth-modal" style="display: none;">
+        <!-- Login Form -->
+        <div id="login-form">
+            <h2>Login</h2>
+            <label for="login-email">Email:</label>
+            <input type="email" id="login-email" name="login-email">
+            <br>
+            <label for="login-password">Password:</label>
+            <input type="password" id="login-password" name="login-password">
+            <br>
+            <button onclick="loginUser()">Login</button>
+            <br>
+            <a href="#" id="show-create-account">Create Account</a>
+        </div>
+    
+        <!-- Create Account Form (Initially Hidden) -->
+        <div id="create-account-form" style="display: none;">
+            <h2>Create Account</h2>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email">
+            <br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password">
+            <br>
+            <button onclick="createUser()">Create Account</button>
+            <br>
+            <a href="#" id="show-login">Back to Login</a>
+        </div>
+    </div>
+
+
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <!-- Firebase SDK for Analytics -->
