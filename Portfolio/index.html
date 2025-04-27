@@ -18,7 +18,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-            	<ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto">
                   <li class="nav-item"><a class="nav-link active" href="#home">Home</a></li>
                   <li class="nav-item"><a class="nav-link" href="#projects">Projects</a></li>
                   <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
@@ -61,7 +61,7 @@
         <p>&copy; 2025 My Portfolio</p>
     </footer>
     
-    <div id="auth-modal">
+    <div id="auth-modal" style="display: none;">
         <h2>Login or Sign Up</h2>
         <label for="email">Email:</label>
         <input type="email" id="email" name="email">
@@ -75,29 +75,28 @@
 
 
     <!-- The core Firebase JS SDK is always required and must be listed first -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
     <!-- Firebase SDK for Analytics -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
-    <!-- Auth and compat -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js"></script>
+    <!-- Auth -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
     
     <script>
-		const firebaseConfig = {
+        const firebaseConfig = {
             apiKey: "AIzaSyAPlN22DA2jT6VWKmxIU63988dxQ5eurf0",
             authDomain: "wkeiideas-ab3c2.firebaseapp.com",          
             projectId: "wkeiideas-ab3c2",
             storageBucket: "wkeiideas-ab3c2.firebasestorage.app",          
             messagingSenderId: "964279254643",
-            	appId: "1:964279254643:web:59ef31a342c165a2cf7406",
+                appId: "1:964279254643:web:59ef31a342c165a2cf7406",
             measurementId: "G-G31NT87CDY"
-    	};
+        };
         
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
     </script>
     <script src="script.js"></script>
+
 </body>
 </html>
