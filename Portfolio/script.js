@@ -1,46 +1,60 @@
 // Firebase Auth UI Logic
 const authButton = document.getElementById("auth-button");
 
+// Get references to HTML elements
+const authButton = document.getElementById("authButton");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const errorMessage = document.getElementById("error-message");
+
+const auth = getAuth();
+
 auth.onAuthStateChanged(user => {
   if (user) {
-    // Logged in
+    // User is signed in
     authButton.textContent = "Logout";
-    authButton.onclick = () => auth.signOut();
-  } else {
-    // Not logged in
-    authButton.textContent = "Login";
     authButton.onclick = () => {
-      const email = prompt("Enter email:");
-      const password = prompt("Enter password:");
-      auth.signInWithEmailAndPassword(email, password)
+        auth.signOut().catch((error) => {
+        // An error happened.
+        errorMessage.textContent = error.message;
+      });
+    };
+  } else {
+    // User is signed out
+    authButton.textContent = "Login/Signup";
+    authButton.onclick = () => {
+      const email = emailInput.value;
+      const password = passwordInput.value;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // Signed in
+           errorMessage.textContent = '';
+          const user = userCredential.user;
+          console.log("Signed in:", user);
+        })
         .catch(error => {
           if (error.code === "auth/user-not-found") {
-            // Create account if user doesn't exist
-            auth.createUserWithEmailAndPassword(email, password);
+            // User not found, create account
+            createUserWithEmailAndPassword(auth, email, password)
+              .then((userCredential) => {
+                // Signed up
+                errorMessage.textContent = '';
+                const user = userCredential.user;
+                console.log("Signed up:", user);
+              })
+              .catch(error => {
+                  errorMessage.textContent = error.message;
+                console.error("Error creating user:", error.code, error.message);
+              });
           } else {
-            alert("Login error: " + error.message);
+            errorMessage.textContent = error.message;
+            console.error("Login error:", error.code, error.message);
           }
         });
     };
   }
 });
-
-// Handle new users
-// Get the values from the input fields
-const email = document.getElementById('email').value;
-const password = document.getElementById('password').value;
-
-firebase.auth().createUserWithEmailAndPassword(email, password)
-  .then((userCredential) => {
-    // Signed in
-    const user = userCredential.user;
-    console.log('User created successfully:', user);
-  })
-  .catch((error) => {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    console.error('Error creating user:', errorCode, errorMessage);
-  });
 
 
 // Project data
