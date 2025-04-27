@@ -1,100 +1,124 @@
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+
 // Get references to HTML elements
-const authButton = document.getElementById("authButton");
+const authButton = document.getElementById("auth-button"); // Navbar button
+const authModal = document.getElementById("auth-modal");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const errorMessage = document.getElementById("error-message");
+const submitButton = document.getElementById("authButton"); // Button inside modal
 
-// Initialize Firebase (Compat Mode)
-const auth = firebase.auth();
+const auth = getAuth();
+
+// Function to show the modal
+function showAuthModal() {
+    authModal.style.display = "block";
+}
+
+// Function to hide the modal
+function hideAuthModal() {
+    authModal.style.display = "none";
+}
+
+// Event listener for the "Login" button in the navbar
+authButton.addEventListener("click", showAuthModal);
 
 auth.onAuthStateChanged(user => {
-  if (user) {
-    // User is signed in
-    authButton.textContent = "Logout";
-    authButton.onclick = () => {
-      auth.signOut().catch((error) => {
-        // An error happened.
-        errorMessage.textContent = error.message;
-      });
-    };
-  } else {
-    // User is signed out
-    authButton.textContent = "Login/Signup";
-    authButton.onclick = () => {
-      const email = emailInput.value;
-      const password = passwordInput.value;
-
-      auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          // Signed in
-          errorMessage.textContent = '';
-          const user = userCredential.user;
-          console.log("Signed in:", user);
-        })
-        .catch(error => {
-          if (error.code === "auth/user-not-found") {
-            // User not found, create account
-            auth.createUserWithEmailAndPassword(email, password)
-              .then((userCredential) => {
-                // Signed up
-                errorMessage.textContent = '';
-                const user = userCredential.user;
-                console.log("Signed up:", user);
-              })
-              .catch(error => {
+    if (user) {
+        // User is signed in
+        authButton.textContent = "Logout";
+        authButton.onclick = () => {
+            auth.signOut().then(() => {
+                // Sign-out successful.
+                hideAuthModal(); // Hide modal after logout
+            }).catch((error) => {
+                // An error happened.
                 errorMessage.textContent = error.message;
-                console.error("Error creating user:", error.code, error.message);
-              });
-          } else {
-            errorMessage.textContent = error.message;
-            console.error("Login error:", error.code, error.message);
-          }
-        });
-    };
-  }
+            });
+        };
+    } else {
+        // User is signed out
+        authButton.textContent = "Login/Signup";
+        authButton.onclick = showAuthModal; // Show modal on click
+        hideAuthModal(); // Ensure modal is hidden on initial load
+    }
 });
 
+// Event listener for the submit button inside the modal
+submitButton.addEventListener("click", () => {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+
+    signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            // Signed in
+            errorMessage.textContent = '';
+            const user = userCredential.user;
+            console.log("Signed in:", user);
+            hideAuthModal(); // Hide modal after successful login
+        })
+        .catch(error => {
+            if (error.code === "auth/user-not-found") {
+                // User not found, create account
+                createUserWithEmailAndPassword(auth, email, password)
+                    .then((userCredential) => {
+                        // Signed up
+                        errorMessage.textContent = '';
+                        const user = userCredential.user;
+                        console.log("Signed up:", user);
+                        hideAuthModal(); // Hide modal after successful signup
+                    })
+                    .catch(error => {
+                        errorMessage.textContent = error.message;
+                        console.error("Error creating user:", error.code, error.message);
+                    });
+            } else {
+                errorMessage.textContent = error.message;
+                console.error("Login error:", error.code, error.message);
+            }
+        });
+});
 
 // Project data
 const projects = [
-  {
-    title: "Wordle Themed Game",
-    description: "A fun word-guessing game inspired by Wordle.",
-    liveUrl: "projects/word%20rush/wordrush.html",
-    repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Projects/",
-  },
-  {
-    title: "Colorku Puzzle Generator",
-    description: "Generate sudoku puzzles playable on phone or colorku board.",
-    liveUrl: "/Projects/ColorkuGen.html",
-    repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Projects/ColorkuGen.html",
-  },
-  {
-    title: "Crossword Puzzles",
-    description: "Here is a dump of crossword puzzles I've made. They are just for fun.",
-    liveUrl: "/Crosswords/crosswords.html",
-    //repoUrl: "https://github.com/your-username/financial-model",
-  },
-  {
-    title: "WKEIIpedia",
-    description: "Guess the wikipedia article from the information in the article.",
-    liveUrl: "/Projects/wkeiipedia.html",
-    repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Projects/wkeiipedia.html",
-  },
-  {
-    title: "Dulko",
-    description: "Strategy board game (WIP).",
-    liveUrl: "/Projects/Dulko/Dulko.html",
-    repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Portfolio/Projects/Dulko.html",
-  },
+    {
+        title: "Wordle Themed Game",
+        description: "A fun word-guessing game inspired by Wordle.",
+        liveUrl: "projects/word%20rush/wordrush.html",
+        repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Projects/",
+    },
+    {
+        title: "Colorku Puzzle Generator",
+        description: "Generate sudoku puzzles playable on phone or colorku board.",
+        liveUrl: "/Projects/ColorkuGen.html",
+        repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Projects/ColorkuGen.html",
+    },
+    {
+        title: "Crossword Puzzles",
+        description: "Here is a dump of crossword puzzles I've made. They are just for fun.",
+        liveUrl: "/Crosswords/crosswords.html",
+        //repoUrl: "https://github.com/your-username/financial-model",
+    },
+    {
+        title: "WKEIIpedia",
+        description: "Guess the wikipedia article from the information in the article.",
+        liveUrl: "/Projects/wkeiipedia.html",
+        repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Projects/wkeiipedia.html",
+    },
+    {
+        title: "Dulko",
+        description: "Strategy board game (WIP).",
+        liveUrl: "/Projects/Dulko/Dulko.html",
+        repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Portfolio/Projects/Dulko.html",
+    },
 ];
 
 // Dynamically load projects
 const projectList = document.getElementById('project-list');
 projects.forEach((project) => {
-  const col = document.createElement('div');
-  col.className = 'col-md-4 mb-4';
-  col.innerHTML = `
+    const col = document.createElement('div');
+    col.className = 'col-md-4 mb-4';
+    col.innerHTML = `
     <div class="card h-100">
       <div class="card-body">
         <h5 class="card-title">${project.title}</h5>
@@ -104,7 +128,7 @@ projects.forEach((project) => {
       </div>
     </div>
   `;
-  projectList.appendChild(col);
+    projectList.appendChild(col);
 });
 
 // Career Timeline Data and Logic
@@ -149,7 +173,7 @@ const timelineData = {
 };
 
 const aboutData = {
-  	integrity: {
+        integrity: {
         title: "Integrity",
         content: "With a background in accounting and finance, I’ve built my career on the principles of transparency and accuracy. Early in my career, I worked for Stephen Calk, a banker who was later convicted of fraud. That experience reinforced my commitment to ethical financial practices and the importance of integrity in both business and personal conduct. Whether in finance or technology, I believe that trust is earned through accountability and a commitment to doing what is right."
     },
