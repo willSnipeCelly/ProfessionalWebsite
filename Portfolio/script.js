@@ -1,20 +1,18 @@
-// Firebase Auth UI Logic
-const authButton = document.getElementById("auth-button");
-
 // Get references to HTML elements
 const authButton = document.getElementById("authButton");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const errorMessage = document.getElementById("error-message");
 
-const auth = getAuth();
+// Initialize Firebase (Compat Mode)
+const auth = firebase.auth();
 
 auth.onAuthStateChanged(user => {
   if (user) {
     // User is signed in
     authButton.textContent = "Logout";
     authButton.onclick = () => {
-        auth.signOut().catch((error) => {
+      auth.signOut().catch((error) => {
         // An error happened.
         errorMessage.textContent = error.message;
       });
@@ -26,17 +24,17 @@ auth.onAuthStateChanged(user => {
       const email = emailInput.value;
       const password = passwordInput.value;
 
-      signInWithEmailAndPassword(auth, email, password)
+      auth.signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
           // Signed in
-           errorMessage.textContent = '';
+          errorMessage.textContent = '';
           const user = userCredential.user;
           console.log("Signed in:", user);
         })
         .catch(error => {
           if (error.code === "auth/user-not-found") {
             // User not found, create account
-            createUserWithEmailAndPassword(auth, email, password)
+            auth.createUserWithEmailAndPassword(email, password)
               .then((userCredential) => {
                 // Signed up
                 errorMessage.textContent = '';
@@ -44,7 +42,7 @@ auth.onAuthStateChanged(user => {
                 console.log("Signed up:", user);
               })
               .catch(error => {
-                  errorMessage.textContent = error.message;
+                errorMessage.textContent = error.message;
                 console.error("Error creating user:", error.code, error.message);
               });
           } else {
