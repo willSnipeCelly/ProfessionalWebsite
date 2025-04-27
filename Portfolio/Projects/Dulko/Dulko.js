@@ -1,4 +1,4 @@
-// --- Global Variables ---
+n// --- Global Variables ---
 const board = []; // 9x9 grid; each cell is either null or an object { piece, owner, deadzone }
 const deadzone = { row: Math.floor(Math.random() * 9), col: Math.floor(Math.random() * 9) };
 let currentPlayer = 1;
@@ -780,6 +780,7 @@ function getRandomStart() {
 }
 
 function findCompletingMove(start) {
+    console.log(start);
     const { row: startRow, col: startCol } = start || { row: 0, col: 0 }; // Default to top-left if no start provided
 
     // Iterate through rows starting from startRow
