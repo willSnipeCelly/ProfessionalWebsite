@@ -13,11 +13,15 @@ const loginButton = document.getElementById("login-button");
 const signupButton = document.getElementById("signup-button");
 
 // Show/hide modal
+// grab the Bootstrap Modal instance
+const authModalEl = document.getElementById("authModal");
+const bsModal = new bootstrap.Modal(authModalEl);
+
 function showAuthModal() {
-    authModal.style.display = "block";
+  bsModal.show();
 }
 function hideAuthModal() {
-    authModal.style.display = "none";
+  bsModal.hide();
 }
 
 // Track auth state
