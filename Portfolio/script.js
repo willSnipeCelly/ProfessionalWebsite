@@ -15,6 +15,7 @@ const signupButton = document.getElementById("signup-button");
 // Show/hide modal
 // grab the Bootstrap Modal instance
 const authModalEl = document.getElementById("authModal");
+console.log("Modal element is:", authModalEl); // should NOT be null
 const bsModal = new bootstrap.Modal(authModalEl);
 
 function showAuthModal() {
