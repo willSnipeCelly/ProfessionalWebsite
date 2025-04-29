@@ -1,81 +1,70 @@
 // USING CDN Version -- import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 
+// Using Firebase via CDN (firebase.auth())
+const auth = firebase.auth();
+
 // Get references to HTML elements
 const authButton = document.getElementById("auth-button"); // Navbar button
 const authModal = document.getElementById("auth-modal");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const errorMessage = document.getElementById("error-message");
-//const submitButton = document.getElementById("authButton"); // Button inside modal
+const loginButton = document.getElementById("login-button");
+const signupButton = document.getElementById("signup-button");
 
-const auth = getAuth();
-
-// Function to show the modal
+// Show/hide modal
 function showAuthModal() {
     authModal.style.display = "block";
 }
-
-// Function to hide the modal
 function hideAuthModal() {
     authModal.style.display = "none";
 }
 
-// Event listener for the "Login" button in the navbar
-authButton.addEventListener("click", showAuthModal);
-
+// Track auth state
 auth.onAuthStateChanged(user => {
     if (user) {
-        // User is signed in
         authButton.textContent = "Logout";
         authButton.onclick = () => {
-            auth.signOut().then(() => {
-                // Sign-out successful.
-                hideAuthModal(); // Hide modal after logout
-            }).catch((error) => {
-                // An error happened.
-                errorMessage.textContent = error.message;
-            });
+            auth.signOut().then(hideAuthModal);
         };
     } else {
-        // User is signed out
         authButton.textContent = "Login/Signup";
-        authButton.onclick = showAuthModal; // Show modal on click
-        hideAuthModal(); // Ensure modal is hidden on initial load
+        authButton.onclick = showAuthModal;
+        hideAuthModal();
     }
 });
 
-// Event listener for the submit button inside the modal
-submitButton.addEventListener("click", () => {
+// Login logic
+loginButton.addEventListener("click", () => {
     const email = emailInput.value;
     const password = passwordInput.value;
 
-    signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-            // Signed in
+    auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+            console.log("Logged in:", userCredential.user);
             errorMessage.textContent = '';
-            const user = userCredential.user;
-            console.log("Signed in:", user);
-            hideAuthModal(); // Hide modal after successful login
+            hideAuthModal();
         })
         .catch(error => {
-            if (error.code === "auth/user-not-found") {
-                // User not found, create account
-                createUserWithEmailAndPassword(auth, email, password)
-                    .then((userCredential) => {
-                        // Signed up
-                        errorMessage.textContent = '';
-                        const user = userCredential.user;
-                        console.log("Signed up:", user);
-                        hideAuthModal(); // Hide modal after successful signup
-                    })
-                    .catch(error => {
-                        errorMessage.textContent = error.message;
-                        console.error("Error creating user:", error.code, error.message);
-                    });
-            } else {
-                errorMessage.textContent = error.message;
-                console.error("Login error:", error.code, error.message);
-            }
+            errorMessage.textContent = error.message;
+            console.error("Login error:", error);
+        });
+});
+
+// Sign-up logic
+signupButton.addEventListener("click", () => {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+
+    auth.createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+            console.log("Signed up:", userCredential.user);
+            errorMessage.textContent = '';
+            hideAuthModal();
+        })
+        .catch(error => {
+            errorMessage.textContent = error.message;
+            console.error("Signup error:", error);
         });
 });
 
