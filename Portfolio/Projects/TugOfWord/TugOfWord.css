@@ -46,3 +46,19 @@ button {
 .green { background: #4caf50; }
 .yellow { background: #ffeb3b; color: #000; }
 .grey { background: #757575; }
+
+.letter-box:hover {
+  cursor: pointer;
+  outline: 2px solid black;
+}
+
+.word-row {
+  position: relative;
+}
+
+.guess-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 5px;
+  position: relative;
+}
