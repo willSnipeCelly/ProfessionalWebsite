@@ -1,40 +1,70 @@
-const secretWord = "planet"; // You can randomize this later
-let guesses = [];
+const secretWord = "planet";
+let placedWords = []; // Stores objects: { word: string, offset: number }
+let branchingIndex = null; // Which letter index we're branching off
 
-document.getElementById('submit-guess').addEventListener('click', () => {
-  const input = document.getElementById('guess-input');
+const input = document.getElementById('guess-input');
+const button = document.getElementById('submit-guess');
+const guessesContainer = document.getElementById('guesses');
+
+// Submit a guess
+button.addEventListener('click', () => {
   const guess = input.value.toLowerCase();
   if (!guess) return;
 
-  guesses.push(guess);
-  renderGuesses();
+  // Compute offset: center the word so branching letter lines up
+  const offset = branchingIndex !== null
+    ? Math.max(branchingIndex - guess.indexOf(secretWord[branchingIndex]), 0)
+    : 0;
+
+  placedWords.push({ word: guess, offset });
+  branchingIndex = null;
   input.value = '';
+  renderGuesses();
 });
 
+// Render all guessed words
 function renderGuesses() {
-  const container = document.getElementById('guesses');
-  container.innerHTML = '';
+  guessesContainer.innerHTML = '';
 
-  guesses.forEach(guess => {
+  placedWords.forEach((entry, rowIndex) => {
+    const { word, offset } = entry;
+
     const row = document.createElement('div');
-    row.classList.add('word-row');
+    row.classList.add('guess-row');
 
-    for (let i = 0; i < guess.length; i++) {
+    // Add empty boxes for offset
+    for (let i = 0; i < offset; i++) {
+      const emptyBox = document.createElement('div');
+      emptyBox.className = 'letter-box';
+      emptyBox.textContent = '';
+      emptyBox.style.visibility = 'hidden';
+      row.appendChild(emptyBox);
+    }
+
+    // Add letters
+    for (let i = 0; i < word.length; i++) {
       const box = document.createElement('div');
-      box.classList.add('letter-box');
-      box.textContent = guess[i];
+      box.className = 'letter-box';
+      box.textContent = word[i];
 
-      if (guess[i] === secretWord[i]) {
+      if (secretWord[i] === word[i]) {
         box.classList.add('green');
-      } else if (secretWord.includes(guess[i])) {
+      } else if (secretWord.includes(word[i])) {
         box.classList.add('yellow');
       } else {
         box.classList.add('grey');
       }
 
+      // Add click-to-branch behavior
+      box.addEventListener('click', () => {
+        branchingIndex = i + offset;
+        input.placeholder = `Start a word using '${word[i]}'`;
+        input.focus();
+      });
+
       row.appendChild(box);
     }
 
-    container.appendChild(row);
+    guessesContainer.appendChild(row);
   });
 }
