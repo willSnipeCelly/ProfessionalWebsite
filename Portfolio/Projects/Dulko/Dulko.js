@@ -1,4 +1,4 @@
-n// --- Global Variables ---
+// --- Global Variables ---
 const board = []; // 9x9 grid; each cell is either null or an object { piece, owner, deadzone }
 const deadzone = { row: Math.floor(Math.random() * 9), col: Math.floor(Math.random() * 9) };
 let currentPlayer = 1;
