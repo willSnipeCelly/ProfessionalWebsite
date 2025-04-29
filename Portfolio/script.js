@@ -6,7 +6,7 @@ const authModal = document.getElementById("auth-modal");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const errorMessage = document.getElementById("error-message");
-const submitButton = document.getElementById("authButton"); // Button inside modal
+//const submitButton = document.getElementById("authButton"); // Button inside modal
 
 const auth = getAuth();
 
