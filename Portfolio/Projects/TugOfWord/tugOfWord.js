@@ -1,44 +1,52 @@
 const secretWord = "planet";
-let placedWords = []; // Stores objects: { word: string, offset: number }
-let branchingIndex = null; // Which letter index we're branching off
+let placedWords = []; // { word, offset }
+let branchingInfo = null; // { letter: 'a', column: 3 }
 
 const input = document.getElementById('guess-input');
 const button = document.getElementById('submit-guess');
 const guessesContainer = document.getElementById('guesses');
 
-// Submit a guess
+// Submit guess
 button.addEventListener('click', () => {
   const guess = input.value.toLowerCase();
   if (!guess) return;
 
-  // Compute offset: center the word so branching letter lines up
-  const offset = branchingIndex !== null
-    ? Math.max(branchingIndex - guess.indexOf(secretWord[branchingIndex]), 0)
-    : 0;
+  let offset = 0;
+
+  if (branchingInfo) {
+    const { letter, column } = branchingInfo;
+    const matchIndex = guess.indexOf(letter);
+
+    if (matchIndex === -1) {
+      alert(`Your guess must include the letter '${letter.toUpperCase()}' to branch.`);
+      return;
+    }
+
+    offset = column - matchIndex;
+    if (offset < 0) offset = 0;
+  }
 
   placedWords.push({ word: guess, offset });
-  branchingIndex = null;
+  branchingInfo = null;
+  input.placeholder = "Enter your guess";
   input.value = '';
   renderGuesses();
 });
 
-// Render all guessed words
 function renderGuesses() {
   guessesContainer.innerHTML = '';
 
-  placedWords.forEach((entry, rowIndex) => {
-    const { word, offset } = entry;
-
+  placedWords.forEach(({ word, offset }, rowIndex) => {
     const row = document.createElement('div');
     row.classList.add('guess-row');
 
-    // Add empty boxes for offset
+    // Add leading blanks for offset
     for (let i = 0; i < offset; i++) {
-      const emptyBox = document.createElement('div');
-      emptyBox.className = 'letter-box';
-      emptyBox.textContent = '';
-      emptyBox.style.visibility = 'hidden';
-      row.appendChild(emptyBox);
+      const blank = document.createElement('div');
+      blank.className = 'letter-box';
+      blank.textContent = '';
+      blank.style.visibility = 'hidden';
+      row.appendChild(blank);
     }
 
     // Add letters
@@ -55,10 +63,11 @@ function renderGuesses() {
         box.classList.add('grey');
       }
 
-      // Add click-to-branch behavior
+      // Enable branching from any letter
       box.addEventListener('click', () => {
-        branchingIndex = i + offset;
-        input.placeholder = `Start a word using '${word[i]}'`;
+        const columnIndex = i + offset;
+        branchingInfo = { letter: word[i], column: columnIndex };
+        input.placeholder = `Next word must include '${word[i].toUpperCase()}'`;
         input.focus();
       });
 
