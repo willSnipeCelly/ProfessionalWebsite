@@ -1,5 +1,5 @@
 const gameBoard = document.getElementById('game-board');
-const gridCols = 70;
+const gridCols = 20;
 let currentRow = 0;
 let branchingInfo = null;
 
