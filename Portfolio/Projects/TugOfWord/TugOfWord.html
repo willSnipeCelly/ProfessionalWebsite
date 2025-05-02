@@ -1,13 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Word Grid Game</title>
-  <link rel="stylesheet" href="TugOfWord.css" />
+  <meta charset="UTF-8">
+  <title>Word Game Grid</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    #gameGrid {
+      display: grid;
+      grid-template-columns: repeat(20, 1fr); /* 20 equal columns [oai_citation:8‡developer.mozilla.org](https://developer.mozilla.org/en-US/docs/Web/CSS/grid-template-columns#:~:text=repeat%28%20%5B%20%3Cpositive,list%3E) */
+      width: 100vw;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    .cell {
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      aspect-ratio: 1 / 1;               /* make each cell square [oai_citation:9‡stackoverflow.com](https://stackoverflow.com/questions/20456694/grid-of-responsive-squares#:~:text=.square%20%7B%20aspect,color%3A%20%231E1E1E) */
+    }
+    .cell input {
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      font-size: 1.2rem;
+      border: none;
+      outline: none;
+    }
+    .cell input.locked {
+      background-color: #f0f0f0; /* gray background for locked (readonly) cells */
+    }
+  </style>
 </head>
 <body>
-  <div id="game-board"></div>
-  <script src="tugOfWord.js"></script>
+  <div id="gameGrid"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const grid = document.getElementById('gameGrid');
+      
+      // Create the initial row (row 0) with a random center letter
+      const centerCol = 10;  // 0-based index for center column
+      const randomLetter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+      for (let i = 0; i < 20; i++) {
+        const cellDiv = document.createElement('div');
+        cellDiv.className = 'cell';
+        const input = document.createElement('input');
+        input.maxLength = 1;
+        input.autocapitalize = 'characters';
+        input.spellcheck = false;
+        if (i === centerCol) {
+          input.value = randomLetter;
+          input.readOnly = true;
+          input.classList.add('locked');
+        }
+        input.addEventListener('input', function() {
+          this.value = this.value.toUpperCase().substring(0, 1);
+        });
+        cellDiv.appendChild(input);
+        grid.appendChild(cellDiv);
+      }
+
+      // Click handler: clicking a letter cell inserts a new row below
+      grid.addEventListener('click', function(e) {
+        const clickedInput = e.target;
+        if (clickedInput.tagName === 'INPUT' && clickedInput.value !== '') {
+          const children = Array.from(grid.children);
+          const index = children.indexOf(clickedInput.parentElement);
+          const row = Math.floor(index / 20);
+          const col = index % 20;
+          const letter = clickedInput.value.toUpperCase();
+          const newRowIndex = row + 1;
+          
+          // Create new row of 20 cells
+          const newRowCells = [];
+          for (let i = 0; i < 20; i++) {
+            const cellDiv = document.createElement('div');
+            cellDiv.className = 'cell';
+            const newInput = document.createElement('input');
+            newInput.maxLength = 1;
+            newInput.autocapitalize = 'characters';
+            newInput.spellcheck = false;
+            if (i === col) {
+              newInput.value = letter;
+              newInput.readOnly = true;
+              newInput.classList.add('locked');
+            }
+            newInput.addEventListener('input', function() {
+              this.value = this.value.toUpperCase().substring(0, 1);
+            });
+            cellDiv.appendChild(newInput);
+            newRowCells.push(cellDiv);
+          }
+          // Insert the new row into the grid
+          const insertBeforeNode = grid.children[newRowIndex * 20];
+          if (insertBeforeNode) {
+            // Insert cells in reverse order to maintain correct sequence
+            for (let j = newRowCells.length - 1; j >= 0; j--) {
+              grid.insertBefore(newRowCells[j], insertBeforeNode);
+            }
+          } else {
+            // No row below; just append
+            newRowCells.forEach(cell => grid.appendChild(cell));
+          }
+
+          // Focus on an adjacent empty cell (prefer left of the locked letter)
+          const focusCol = (col > 0 ? col - 1 : 1);
+          const focusIndex = newRowIndex * 20 + focusCol;
+          const focusCell = grid.children[focusIndex];
+          if (focusCell) {
+            const focusInput = focusCell.querySelector('input');
+            if (focusInput) focusInput.focus();
+          }
+        }
+      });
+    });
+  </script>
 </body>
 </html>
