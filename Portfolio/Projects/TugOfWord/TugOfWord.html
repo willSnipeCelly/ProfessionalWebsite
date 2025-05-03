@@ -32,6 +32,7 @@
             background-color: #ddd;
             padding: 5px;
             margin-bottom: 20px;
+            position: relative; /* Needed for absolute positioning of input */
         }
         .cell {
             width: 30px;
@@ -44,6 +45,8 @@
             cursor: pointer;
             user-select: none;
             background-color: #fff;
+            position: relative; /* For relative positioning of the input field */
+            overflow: hidden;  /* to hide overflowing input characters */
         }
         .cell.starting-letter {
             background-color: #ffd700; /* Gold */
@@ -55,6 +58,10 @@
         }
         .cell.player2 {
             background-color: #dda0dd; /* Light Purple */
+            color: #000;
+        }
+        .cell.selected {
+            background-color: #ffff00; /* Yellow */
             color: #000;
         }
         .input-container {
@@ -70,6 +77,7 @@
             margin-right: 10px;
             font-family: 'Press Start 2P', monospace;
             width: 200px;
+            display: none; /* Hide the text input field */
         }
         #submit-word {
             padding: 10px 20px;
@@ -134,6 +142,33 @@
           background-color: #dda0dd; /* Light Purple */
         }
 
+        /* Input field for direct typing */
+        .cell input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            text-align: center;
+            font-size: 16px;
+            font-family: 'Press Start 2P', monospace;
+            padding: 0;
+            background-color: transparent;
+            z-index: 1;
+            opacity: 0; /* Make it invisible initially */
+            cursor: pointer; /* Make it obvious that the cell is clickable */
+            -webkit-appearance: none;  /* removes default input styling */
+            appearance: none;
+            box-sizing: border-box; /* Ensure padding doesn't affect dimensions */
+        }
+
+        .cell input:focus {
+            outline: none; /* Remove the default outline */
+            opacity: 1;  /* Make it visible when focused */
+            background-color: rgba(255, 255, 0, 0.2); /* হালকা হলুদ রঙ */
+        }
+
     </style>
 </head>
 <body>
@@ -168,6 +203,11 @@
         let wordsPlayed = []; // Array to store words and their positions
         let player1Weight = 0;
         let player2Weight = 0;
+        let selectedRow = -1;
+        let selectedCol = -1;
+        let selectedLetter = '';
+        let currentInputWord = ''; // To store the word being built
+        let activeInputCell = null;
 
         const gridContainer = document.getElementById('grid-container');
         const wordInput = document.getElementById('word-input');
@@ -187,6 +227,12 @@
                     const cell = document.createElement('div');
                     cell.classList.add('cell');
                     cell.id = `cell-${i}-${j}`;
+                    const input = document.createElement('input');  // Create input element
+                    input.type = 'text';
+                    input.maxLength = '1';  // Restrict input to a single character
+                    input.addEventListener('input', handleCellInput); // Attach input event
+                    input.addEventListener('keydown', handleCellKeyDown);
+                    cell.appendChild(input); // Add the input to the cell
                     gridContainer.appendChild(cell);
                     grid[i][j] = ''; // Initialize cell content
                 }
@@ -206,11 +252,16 @@
             wordsPlayed = [];
             player1Weight = 0;
             player2Weight = 0;
+            selectedRow = -1;
+            selectedCol = -1;
+            selectedLetter = '';
+            currentInputWord = '';
+            activeInputCell = null;
             updateWeightDisplay();
             messageBox.textContent = `Player 1: Enter a word using '${startingLetter}'`;
             wordInput.value = '';
-            wordInput.disabled = false;
-            submitWordButton.disabled = false;
+            wordInput.disabled = true; // Keep the text input disabled
+            submitWordButton.disabled = true; // Disable submit button initially
         }
 
 
@@ -222,7 +273,8 @@
             for (let i = 0; i < ROWS; i++) {
                 for (let j = 0; j < COLS; j++) {
                     const cell = getCellElement(i, j);
-                    cell.textContent = grid[i][j];
+                    const input = cell.querySelector('input');
+                    cell.textContent = grid[i][j]; // Display the letter in the cell
                     cell.className = 'cell'; // Reset classes
                     if (grid[i][j]) {
                         if (wordsPlayed.some(wordObj =>
@@ -237,6 +289,11 @@
                     if (i === 0 && j === 10) {
                         cell.classList.add('starting-letter');
                     }
+                    if (selectedRow === i && selectedCol === j) {
+                        cell.classList.add('selected');
+                    }
+                    input.value = grid[i][j]; // Keep input value synced with grid
+                    input.style.opacity = grid[i][j] ? 0 : 1; // Show input only when cell is empty
                 }
             }
         }
@@ -246,58 +303,67 @@
             return word.length > 1;
         }
 
-        function canPlaceWord(word, row, col, orientation, anchorLetter, anchorCol) {
+        function canPlaceWord(word, row, col) {
             if (!isValidWord(word)) {
                 return false;
             }
 
-            if (orientation === 'horizontal' && col + word.length > COLS) {
-                return false; // Word exceeds grid boundary
-            }
-            if (orientation === 'vertical' && row + word.length > ROWS) {
+            if (col + word.length > COLS) {
                 return false; // Word exceeds grid boundary
             }
 
-             let foundAnchor = false;
-             for (let i = 0; i < word.length; i++) {
-                const checkRow = orientation === 'vertical' ? row + i : row;
-                const checkCol = orientation === 'horizontal' ? col + i : col;
-                if (checkRow < 0 || checkRow >= ROWS || checkCol < 0 || checkCol >= COLS)
+            if (wordsPlayed.length === 0 && row === 0) {
+                // First word placement by player 1
+                const startCol = 10;
+                const wordCol = word.indexOf(startingLetter);
+                if (wordCol === -1) {
+                    return false; // Word must contain starting letter
+                }
+                if (col !== startCol - wordCol) {
                     return false;
+                }
+                return true;
+            }
 
-                if (word[i] === anchorLetter && checkCol === anchorCol) {
-                    foundAnchor = true;
+            // Check for overlap and anchor letter
+            let foundAnchor = false;
+            for (let i = 0; i < word.length; i++) {
+                const checkRow = row;
+                const checkCol = col + i;
+
+                if (checkRow < 0 || checkRow >= ROWS || checkCol < 0 || checkCol >= COLS) {
+                    return false; // Out of bounds
                 }
 
-                // Check for overlap with existing words
                 if (grid[checkRow][checkCol] && grid[checkRow][checkCol] !== word[i]) {
-                    return false; // Overlapping a different letter
+                    return false; // Overlapping different letter
+                }
+                if (checkRow === selectedRow && checkCol === selectedCol) {
+                    foundAnchor = true;
                 }
             }
             return foundAnchor;
         }
 
-        function placeWord(word, row, col, orientation) {
-            if (!isValidWord(word)) {
+        function placeWord(word, row, col) {
+             if (!isValidWord(word)) {
                 messageBox.textContent = "Invalid word!";
                 return false;
             }
 
-            const anchorLetter = orientation === 'horizontal' ? word[0] : word[0];
-            const anchorCol = col;
-
-            if (!canPlaceWord(word, row, col, orientation, anchorLetter, anchorCol)) {
+            const previousWords = wordsPlayed;
+            if (!canPlaceWord(word, row, col)) {
                 messageBox.textContent = "Cannot place word there!";
                 return false;
             }
 
             for (let i = 0; i < word.length; i++) {
-                const placeRow = orientation === 'vertical' ? row + i : row;
-                const placeCol = orientation === 'horizontal' ? col + i : col;
+                const placeRow =  row ;
+                const placeCol =  col + i;
                 grid[placeRow][placeCol] = word[i];
             }
 
-            wordsPlayed.push({ word, row, col, orientation }); // Store the word placement
+            wordsPlayed.push({ word, row, col, orientation: 'horizontal' }); // Store the word placement
             updateGridDisplay();
             return true;
         }
@@ -312,14 +378,15 @@
             return letters;
         }
 
+
+
         function handlePlayerTurn() {
             if (gameOver) return;
 
-            const word = wordInput.value.toUpperCase();
-            wordInput.value = '';
-            let row, col, orientation;
+            const word = currentInputWord.toUpperCase();
+            let row, col;
 
-            if (currentPlayer === 1) {
+             if (currentPlayer === 1) {
                 if (wordsPlayed.length === 0) {
                     // First word of the game
                     const startCol = 10;
@@ -330,48 +397,27 @@
                     }
                     row = 0;
                     col = startCol - wordCol;
-                    orientation = 'horizontal';
-                    if (placeWord(word, row, col, orientation)) {
+                    if (placeWord(word, row, col)) {
                         currentPlayer = 2;
-                        messageBox.textContent = "Player 2's turn: Place a word in column 2 using a letter from row 1";
+                        messageBox.textContent = "Player 2's turn: Select a letter to play off of.";
                     }
                 } else {
                     // Player 1's subsequent turns
-                    const playableLetters = determinePlayableLetters(wordsPlayed[wordsPlayed.length-1].row);
-                    if (playableLetters.length === 0){
-                         messageBox.textContent = "Game Over - No playable letters for Player 1";
-                         gameOver = true;
-                         wordInput.disabled = true;
-                         submitWordButton.disabled = true;
-                         return;
+                    if (selectedRow === -1 || selectedCol === -1) {
+                        messageBox.textContent = "Select a letter to play off of!";
+                        return;
                     }
-                    let anchorLetter = '';
-                    let anchorCol = -1;
-                    for (let i=0; i< playableLetters.length; i++){
-                        if (word.includes(playableLetters[i].letter)){
-                            anchorLetter = playableLetters[i].letter;
-                            anchorCol = playableLetters[i].col;
-                            break;
-                        }
-                    }
-
-                    if (anchorCol === -1) {
-                         messageBox.textContent = "Word must contain a letter from the row above";
-                         return;
-                    }
-                    const wordCol = word.indexOf(anchorLetter);
-                    row = wordsPlayed[wordsPlayed.length-1].row + 1;
-                    col = anchorCol - wordCol;
-                    orientation = 'horizontal';
-
-                    if (placeWord(word, row, col, orientation)) {
+                    const previousWord = wordsPlayed[wordsPlayed.length - 1];
+                    row = previousWord.row + 1;
+                    col = selectedCol - word.indexOf(selectedLetter);
+                    if (placeWord(word, row, col)) {
                         currentPlayer = 2;
-                        messageBox.textContent = "Player 2's turn";
+                        messageBox.textContent = "Player 2's turn: Select a letter to play off of.";
                     }
                 }
             } else {
                 if (wordsPlayed.length === 1) {
-                  // Player 2's first turn.  Must play in column 2.
+                    // Player 2's first turn.  Must play in column 2.
                     const wordCol = 1; // Fixed column for Player 2's first word
                     const letterIndex = word.indexOf(grid[0][wordCol]);
                     if (letterIndex === -1) {
@@ -380,45 +426,23 @@
                     }
                     row = letterIndex;
                     col = wordCol;
-                    orientation = 'vertical';
-                    if (placeWord(word, row, col, orientation)) {
+                    if (placeWord(word, row, col)) {
                         currentPlayer = 1;
-                        messageBox.textContent = "Player 1's turn";
+                        messageBox.textContent = "Player 1's turn: Select a letter to play off of.";
                     }
                 } else {
                     // Player 2's subsequent turns
-                    const playableLetters = determinePlayableLetters(wordsPlayed[wordsPlayed.length-1].row);
-                     if (playableLetters.length === 0){
-                         messageBox.textContent = "Game Over - No playable letters for Player 2";
-                         gameOver = true;
-                         wordInput.disabled = true;
-                         submitWordButton.disabled = true;
-                         return;
+                    if (selectedRow === -1 || selectedCol === -1) {
+                        messageBox.textContent = "Select a letter to play off of!";
+                        return;
                     }
+                    const previousWord = wordsPlayed[wordsPlayed.length - 1];
+                    row = previousWord.row + 1;
+                    col = selectedCol - word.indexOf(selectedLetter);
 
-                    let anchorLetter = '';
-                    let anchorCol = -1;
-                    for (let i=0; i< playableLetters.length; i++){
-                        if (word.includes(playableLetters[i].letter)){
-                            anchorLetter = playableLetters[i].letter;
-                            anchorCol = playableLetters[i].col;
-                            break;
-                        }
-                    }
-
-                    if (anchorCol === -1) {
-                         messageBox.textContent = "Word must contain a letter from the row above";
-                         return;
-                    }
-
-                    const wordCol = word.indexOf(anchorLetter);
-                    row = wordsPlayed[wordsPlayed.length-1].row + 1;
-                    col = anchorCol - wordCol;
-                    orientation = 'horizontal';
-
-                    if (placeWord(word, row, col, orientation)) {
+                    if (placeWord(word, row, col)) {
                         currentPlayer = 1;
-                        messageBox.textContent = "Player 1's turn";
+                        messageBox.textContent = "Player 1's turn: Select a letter to play off of.";
                     }
                 }
             }
@@ -426,6 +450,14 @@
                 calculateWeights();
                 updateWeightDisplay();
             }
+            selectedRow = -1;
+            selectedCol = -1;
+            selectedLetter = '';
+            currentInputWord = '';
+            activeInputCell = null;
+            wordInput.value = '';
+            wordInput.disabled = true;
+            submitWordButton.disabled = true;
         }
 
         function calculateWeights() {
@@ -467,6 +499,106 @@
 
         function resetGame() {
             initializeGame();
+        }
+
+        function handleCellClick(event) {
+            const cell = event.target.parentElement; // Get the parent .cell element
+            const parts = cell.id.split('-');
+            const row = parseInt(parts[1]);
+            const col = parseInt(parts[2]);
+
+            // Only allow selection of letters from previous words
+            let isPlayable = false;
+            if (wordsPlayed.length > 0) {
+                const prevWord = wordsPlayed[wordsPlayed.length - 1];
+                const nextRow = prevWord.row + 1;
+                if (row === nextRow) { // Only allow selection in the row below.
+                    for (let i = 0; i < prevWord.word.length; i++) {
+                        const checkRow = prevWord.orientation === 'vertical' ? prevWord.row + i : prevWord.row;
+                        const checkCol = prevWord.orientation === 'horizontal' ? prevWord.col + i : prevWord.col;
+                        if (checkRow === row - 1 && checkCol === col && grid[row - 1][col] !== '') {
+                            isPlayable = true;
+                            break;
+                        }
+                    }
+                }
+            } else if (row === 0 && col === 10) {
+                isPlayable = true;
+            }
+
+            if (isPlayable) {
+                selectedRow = row;
+                selectedCol = col;
+                selectedLetter = grid[row][col];
+                updateGridDisplay(); // Re-render to show selection
+                messageBox.textContent = `Selected letter: ${selectedLetter}. Enter your word:`;
+                wordInput.disabled = false; // Enable the input field
+                submitWordButton.disabled = false;
+                wordInput.focus();
+
+                //set focus to the cell below
+                const nextInput = getCellElement(row,col).querySelector('input');
+                nextInput.focus();
+                activeInputCell = {row, col};
+                currentInputWord = selectedLetter;
+
+            } else {
+                messageBox.textContent = "Invalid cell selected. Please select a letter from the previous word in the row above.";
+            }
+        }
+
+        function handleCellInput(event) {
+            const input = event.target;
+            let value = input.value.toUpperCase();
+            input.value = value; // Ensure the value is uppercase
+             const cell = event.target.parentElement;
+            const parts = cell.id.split('-');
+            const row = parseInt(parts[1]);
+            const col = parseInt(parts[2]);
+
+            if (value) {
+                grid[row][col] = value;
+                currentInputWord += value;
+                 // Move focus to the next cell to the right
+                const nextCol = col + 1;
+                if (nextCol < COLS) {
+                    const nextCellInput = getCellElement(row, nextCol).querySelector('input');
+                    if (nextCellInput) {
+                        nextCellInput.focus();
+                        activeInputCell = {row, col: nextCol};
+                    }
+                }
+            }
+            else{
+                 grid[row][col] = '';
+                 currentInputWord = currentInputWord.slice(0, -1);
+            }
+            updateGridDisplay();
+
+        }
+
+        function handleCellKeyDown(event) {
+            if (event.key === 'Enter') {
+                handlePlayerTurn();
+            }
+            else if (event.key === 'Backspace'){
+                const cell = event.target.parentElement;
+                const parts = cell.id.split('-');
+                const row = parseInt(parts[1]);
+                const col = parseInt(parts[2]);
+                grid[row][col] = '';
+                currentInputWord = currentInputWord.slice(0, -1);
+                updateGridDisplay();
+                const prevCol = col - 1;
+                if(prevCol >= 0){
+                     const prevCellInput = getCellElement(row, prevCol).querySelector('input');
+                    if (prevCellInput) {
+                        prevCellInput.focus();
+                        activeInputCell = {row, col: prevCol};
+                    }
+                }
+
+            }
         }
 
         submitWordButton.addEventListener('click', handlePlayerTurn);
