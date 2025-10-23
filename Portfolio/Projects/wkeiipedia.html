@@ -80,6 +80,15 @@
         async function startGame() {
             document.getElementById("gameOverOptions").style.display = "none";  
             document.getElementById("guessInput").value = "";
+            const response = await fetch(`${BACKEND_URL}/get_article`);
+            const data = await response.json();
+            
+            if (!data || !data.title || !data.sentences || data.sentences.length === 0) {
+                console.error("Failed to fetch article data or data is incomplete:", data);
+                alert("Could not start game. Failed to load article. Please try again.");
+                return; // Stop the function if data is bad
+            }
+
             //gamePlayCount++;
             //console.log("Game played:", gamePlayCount);
         
