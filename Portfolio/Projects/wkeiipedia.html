@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!privacy>
+   <!--Commenting out Ads
+ <!privacy>
     <script src="https://cmp.gatekeeperconsent.com/min.js" data-cfasync="false"></script>
     <script src="https://the.gatekeeperconsent.com/cmp.min.js" data-cfasync="false"></script>
     <!header ad setup>
@@ -10,6 +11,7 @@
       window.ezstandalone = window.ezstandalone || {};
       ezstandalone.cmd = ezstandalone.cmd || [];
     </script>
+    -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guess the Wikipedia Article</title>
@@ -78,15 +80,16 @@
         async function startGame() {
             document.getElementById("gameOverOptions").style.display = "none";  
             document.getElementById("guessInput").value = "";
-            gamePlayCount++;
-            console.log("Game played:", gamePlayCount);
+            //gamePlayCount++;
+            //console.log("Game played:", gamePlayCount);
         
-            if (gamePlayCount % 3 === 0) {
+           /* if (gamePlayCount % 3 === 0) {
                 console.log("Time to show ad after 5 seconds...");
                 setTimeout(function() {
                     displayEzoicAd(adPlaceholderId);
                 }, 5000);
             }
+            */
             
             guessedLetters.clear();
             currentSentenceIndex = 0;
@@ -173,7 +176,7 @@
             document.getElementById("wikiLink").textContent = "Read More on Wikipedia";
         }
                 
-        //handle ads
+        /*handle ads
         function displayEzoicAd(placeholderId) {
             if (window.ezstandalone && window.ezstandalone.cmd) {
                 window.ezstandalone.cmd.push(function() {
@@ -183,7 +186,7 @@
             } else {
                 console.error("Ezoic standalone not initialized.");
             }
-        }
+        }*/
 
         window.onload = startGame;
     </script>
