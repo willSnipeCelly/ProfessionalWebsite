@@ -60,6 +60,8 @@
             try {
                 const response = await fetch(`${BACKEND_URL}/get_article`);
                 const data = await response.json();
+                
+                console.log("Data received from server:", data);
 
                 if (!data || !data.title) throw new Error("Invalid data");
 
