@@ -1,68 +1,41 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
-   <!--Commenting out Ads
- <!privacy>
-    <script src="https://cmp.gatekeeperconsent.com/min.js" data-cfasync="false"></script>
-    <script src="https://the.gatekeeperconsent.com/cmp.min.js" data-cfasync="false"></script>
-    <!header ad setup>
-    <script async src="//www.ezojs.com/ezoic/sa.min.js"></script>
-    <script>
-      window.ezstandalone = window.ezstandalone || {};
-      ezstandalone.cmd = ezstandalone.cmd || [];
-    </script>
-    -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guess the Wikipedia Article</title>
     <style>
-        #titleDisplay {
-            font-size: 24px;
-            letter-spacing: 5px;
-            margin-bottom: 20px;
-        }
-        #sentences {
-            margin-top: 20px;
-        }
-        .keyboard {
-            display: flex;
-            flex-wrap: wrap;
-            max-width: 400px;
-            margin-top: 20px;
-        }
-        .key {
-            width: 30px;
-            height: 30px;
-            margin: 5px;
-            text-align: center;
-            line-height: 30px;
-            border: 1px solid black;
-            cursor: pointer;
-            background-color: #f0f0f0;
-        }
-        .disabled {
-            background-color: #ccc;
-            pointer-events: none;
-        }
-        #gameOverOptions {
-            margin-top: 20px;
-            display: none;
-        }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        #titleDisplay { font-size: 24px; letter-spacing: 5px; margin-bottom: 20px; font-family: monospace; font-weight: bold; }
+        #sentences { margin: 20px 0; max-width: 600px; line-height: 1.5; background: #f9f9f9; padding: 15px; border-radius: 8px; }
+        .keyboard { display: flex; flex-wrap: wrap; max-width: 450px; justify-content: center; margin-top: 20px; }
+        .key { width: 35px; height: 35px; margin: 5px; text-align: center; line-height: 35px; border: 1px solid #333; 
+               cursor: pointer; background-color: #f0f0f0; border-radius: 4px; font-weight: bold; }
+        .key:hover { background-color: #ddd; }
+        .disabled { background-color: #ccc !important; color: #888; pointer-events: none; border-color: #aaa; }
+        #gameOverOptions { margin-top: 20px; display: none; text-align: center; }
+        button { padding: 10px 20px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
+        input { padding: 10px; width: 250px; }
     </style>
 </head>
 <body>
+
     <h1>Guess the Wikipedia Article</h1>
     <p id="titleDisplay"></p>  
     <div id="sentences"></div>
     
-    <input type="text" id="guessInput" placeholder="Guess the full title">
-    <button onclick="submitFullGuess()">Submit Title Guess</button>
+    <div id="gameControls">
+        <input type="text" id="guessInput" placeholder="Guess the full title">
+        <button onclick="submitFullGuess()">Submit Title</button>
+    </div>
     
     <div class="keyboard" id="virtualKeyboard"></div>
 
     <div id="gameOverOptions">
-        <button onclick="startGame()">New Game</button>
-        <a id="wikiLink" target="_blank">Read More</a>
+        <h2 id="resultStatus"></h2>
+        <button onclick="startGame()">Play Again</button>
+        <br><br>
+        <a id="wikiLink" target="_blank" style="color: #007bff; text-decoration: none; font-weight: bold;">Read More on Wikipedia</a>
     </div>
 
     <script>
@@ -73,54 +46,45 @@
         let articleURL = "";
         const BACKEND_URL = "https://profwebbackend.onrender.com";
         const guessedLetters = new Set();
-        let gamePlayCount = 0;                
-        const adPlaceholderId = 960;
-
 
         async function startGame() {
-            document.getElementById("gameOverOptions").style.display = "none";  
+            // Reset UI
+            document.getElementById("gameOverOptions").style.display = "none";
+            document.getElementById("gameControls").style.display = "block";
+            document.getElementById("sentences").innerHTML = "Loading clues...";
+            document.getElementById("titleDisplay").textContent = "";
             document.getElementById("guessInput").value = "";
-            const response = await fetch(`${BACKEND_URL}/get_article`);
-            const data = await response.json();
-            
-            if (!data || !data.title || !data.sentences || data.sentences.length === 0) {
-                console.error("Failed to fetch article data or data is incomplete:", data);
-                alert("Could not start game. Failed to load article. Please try again.");
-                return; // Stop the function if data is bad
-            }
-
-            //gamePlayCount++;
-            //console.log("Game played:", gamePlayCount);
-        
-           /* if (gamePlayCount % 3 === 0) {
-                console.log("Time to show ad after 5 seconds...");
-                setTimeout(function() {
-                    displayEzoicAd(adPlaceholderId);
-                }, 5000);
-            }
-            */
-            
             guessedLetters.clear();
             currentSentenceIndex = 0;
 
-            const response = await fetch(`${BACKEND_URL}/get_article`);
-            const data = await response.json();
-            sentences = data.sentences;
-            correctTitle = data.title.toLowerCase();
-            articleURL = `https://en.wikipedia.org/wiki/${correctTitle.replace(/ /g, "_")}`;
+            try {
+                const response = await fetch(`${BACKEND_URL}/get_article`);
+                const data = await response.json();
 
-            revealedTitle = correctTitle.replace(/\S/g, char => (char === " " ? " " : "_"));
-            document.getElementById("titleDisplay").textContent = revealedTitle.split("").join(" ");
-            document.getElementById("sentences").innerHTML = `<p>${sentences[0]}</p>`;
-            
-            setupKeyboard();
+                if (!data || !data.title) throw new Error("Invalid data");
+
+                sentences = data.sentences;
+                correctTitle = data.title.toLowerCase();
+                articleURL = `https://en.wikipedia.org/wiki/${encodeURIComponent(data.title)}`;
+
+                // Reveal spaces and non-alphabetical characters (hyphens, etc.)
+                revealedTitle = correctTitle.replace(/[a-z]/g, "_");
+                
+                updateDisplay();
+                document.getElementById("sentences").innerHTML = `<p><strong>Clue 1:</strong> ${sentences[0]}</p>`;
+                setupKeyboard();
+
+            } catch (error) {
+                console.error("Fetch error:", error);
+                document.getElementById("sentences").innerHTML = "Failed to load article. Please refresh.";
+            }
         }
 
         function setupKeyboard() {
             const keyboard = document.getElementById("virtualKeyboard");
             keyboard.innerHTML = "";
-            for (let i = 65; i <= 90; i++) { 
-                let letter = String.fromCharCode(i).toLowerCase();
+            for (let i = 97; i <= 122; i++) { 
+                let letter = String.fromCharCode(i);
                 let keyButton = document.createElement("div");
                 keyButton.classList.add("key");
                 keyButton.textContent = letter;
@@ -133,69 +97,58 @@
             if (guessedLetters.has(letter)) return;
             guessedLetters.add(letter);
             
-            document.querySelectorAll(".key").forEach(key => {
-                if (key.textContent === letter) key.classList.add("disabled");
-            });
+            // Disable key
+            const keys = document.querySelectorAll(".key");
+            keys.forEach(key => { if (key.textContent === letter) key.classList.add("disabled"); });
 
-            let updatedTitle = "";
-            let correctGuess = false;
-
-            for (let i = 0; i < correctTitle.length; i++) {
-                if (correctTitle[i] === letter) {
-                    updatedTitle += letter;
-                    correctGuess = true;
-                } else {
-                    updatedTitle += revealedTitle[i];
+            if (correctTitle.includes(letter)) {
+                let newRevealed = "";
+                for (let i = 0; i < correctTitle.length; i++) {
+                    newRevealed += (correctTitle[i] === letter || revealedTitle[i] !== "_") ? correctTitle[i] : "_";
                 }
+                revealedTitle = newRevealed;
+                updateDisplay();
+                if (revealedTitle === correctTitle) endGame(true);
+            } else {
+                nextClue();
             }
+        }
 
-            revealedTitle = updatedTitle;
-            document.getElementById("titleDisplay").textContent = revealedTitle.split("").join(" ");
-
-            if (!correctGuess) {
-                currentSentenceIndex++;
-                if (currentSentenceIndex < sentences.length) {
-                    document.getElementById("sentences").innerHTML += `<p>${sentences[currentSentenceIndex]}</p>`;
-                } else {
-                    endGame(false);
-                }
-            } else if (revealedTitle === correctTitle) {
-                endGame(true);
+        function nextClue() {
+            currentSentenceIndex++;
+            if (currentSentenceIndex < sentences.length) {
+                document.getElementById("sentences").innerHTML += `<p><strong>Clue ${currentSentenceIndex + 1}:</strong> ${sentences[currentSentenceIndex]}</p>`;
+            } else {
+                endGame(false);
             }
         }
 
         function submitFullGuess() {
-            const userGuess = document.getElementById("guessInput").value.toLowerCase();
+            const userGuess = document.getElementById("guessInput").value.toLowerCase().trim();
             if (userGuess === correctTitle) {
                 endGame(true);
             } else {
-                currentSentenceIndex++;
-                if (currentSentenceIndex < sentences.length) {
-                    document.getElementById("sentences").innerHTML += `<p>${sentences[currentSentenceIndex]}</p>`;
-                } else {
-                    endGame(false);
-                }
+                alert("Wrong title! Next clue revealed.");
+                nextClue();
             }
         }
 
-        function endGame(won) {
-            alert(won ? "Correct! You guessed the title." : `Game over! The correct title was: ${correctTitle}`);
-            document.getElementById("gameOverOptions").style.display = "block";
-            document.getElementById("wikiLink").href = articleURL;
-            document.getElementById("wikiLink").textContent = "Read More on Wikipedia";
+        function updateDisplay() {
+            document.getElementById("titleDisplay").textContent = revealedTitle.split("").join(" ");
         }
-                
-        /*handle ads
-        function displayEzoicAd(placeholderId) {
-            if (window.ezstandalone && window.ezstandalone.cmd) {
-                window.ezstandalone.cmd.push(function() {
-                    window.ezstandalone.showAds(placeholderId);
-                });
-                console.log("Ezoic ad displayed in placeholder:", placeholderId);
-            } else {
-                console.error("Ezoic standalone not initialized.");
+
+        function endGame(won) {
+            document.getElementById("gameControls").style.display = "none";
+            document.getElementById("virtualKeyboard").innerHTML = "";
+            document.getElementById("gameOverOptions").style.display = "block";
+            document.getElementById("resultStatus").textContent = won ? "🎉 You Got It!" : "❌ Game Over!";
+            document.getElementById("titleDisplay").textContent = correctTitle.toUpperCase();
+            document.getElementById("wikiLink").href = articleURL;
+            
+            if (!won) {
+                alert(`The correct article was: ${correctTitle.toUpperCase()}`);
             }
-        }*/
+        }
 
         window.onload = startGame;
     </script>
