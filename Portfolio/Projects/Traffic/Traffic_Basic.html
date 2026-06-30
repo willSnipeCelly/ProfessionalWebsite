@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Braess's Paradox Simulation</title>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            font-family: system-ui, -apple-system, sans-serif;
+            text-align: center;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f7;
+            border-radius: 8px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background-color: #0071e3;
+            color: white;
+            margin: 5px;
+        }
+        button:hover { background-color: #005bb5; }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .network-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .node {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: #333;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            z-index: 10;
+        }
+        /* Absolute positions for diamond network layout */
+        #node-start { top: 175px; left: 50px; background: #28a745; }
+        #node-A     { top: 50px;  left: 375px; }
+        #node-B     { top: 300px; left: 375px; }
+        #node-end   { top: 175px; right: 50px; background: #dc3545; }
+
+        .edge {
+            position: absolute;
+            height: 4px;
+            background-color: #ccc;
+            transform-origin: 0 50%;
+            z-index: 5;
+            transition: background-color 0.3s;
+        }
+        .edge-label {
+            position: absolute;
+            background: white;
+            padding: 2px 6px;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 11;
+            transform: translate(-50%, -50%);
+        }
+        .active-edge { background-color: #0071e3; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Interactive Nash Equilibrium Model</h2>
+    <p><strong>Scenario:</strong> 100 drivers are commuting from <strong>Start</strong> to <strong>End</strong>.</p>
+    
+    <div class="controls">
+        <button id="toggle-shortcut">Add Shortcut (A → B)</button>
+        <button id="step-sim">Next Step (Simulate Choices)</button>
+        <button id="reset-sim">Reset</button>
+        
+        <div class="stats">
+            <div>Drivers via Top (A): <span id="count-top">50</span></div>
+            <div>Drivers via Bottom (B): <span id="count-bottom">50</span></div>
+            <div>Drivers via Shortcut: <span id="count-shortcut">0</span></div>
+            <div style="color: #dc3545;">Avg Travel Time: <span id="avg-time">65.0</span> mins</div>
+        </div>
+    </div>
+
+    <div class="network-container" id="network">
+        <div class="node" id="node-start">Start</div>
+        <div class="node" id="node-A">A</div>
+        <div class="node" id="node-B">B</div>
+        <div class="node" id="node-end">End</div>
+
+        <div class="edge-label" style="top: 112px; left: 212px;" id="lbl-start-A">Cost: T/100</div>
+        <div class="edge-label" style="top: 237px; left: 212px;" id="lbl-start-B">Cost: 45</div>
+        <div class="edge-label" style="top: 112px; left: 587px;" id="lbl-A-end">Cost: 45</div>
+        <div class="edge-label" style="top: 237px; left: 587px;" id="lbl-B-end">Cost: T/100</div>
+        <div class="edge-label hidden" style="top: 175px; left: 375px;" id="lbl-shortcut">Cost: 0</div>
+    </div>
+</div>
+
+<script>
+// Network state parameters
+const TOTAL_DRIVERS = 100;
+let shortcutBuilt = false;
+
+// Driver strategies tracking numbers:
+// Path 1: Start -> A -> End
+// Path 2: Start -> B -> End
+// Path 3: Start -> A -> B -> End (Only available if shortcutBuilt is true)
+let paths = { top: 50, bottom: 50, shortcut: 0 };
+
+// Render logic to draw SVG-like layout lines natively via DOM
+function drawEdge(id, x1, y1, x2, y2) {
+    let edge = document.getElementById(id);
+    if (!edge) {
+        edge = document.createElement('div');
+        edge.id = id;
+        edge.className = 'edge';
+        document.getElementById('network').appendChild(edge);
+    }
+    const length = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+    const angle  = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
+    
+    edge.style.width = length + 'px';
+    edge.style.transform = `rotate(${angle}deg)`;
+    edge.style.top = y1 + 'px';
+    edge.style.left = x1 + 'px';
+}
+
+function initLayout() {
+    drawEdge('edge-start-A', 100, 200, 375, 75);
+    drawEdge('edge-start-B', 100, 200, 375, 325);
+    drawEdge('edge-A-end', 425, 75, 700, 200);
+    drawEdge('edge-B-end', 425, 325, 700, 200);
+    drawEdge('edge-shortcut', 400, 100, 400, 300);
+    updateUI();
+}
+
+function updateUI() {
+    // Calculate actual loads on segments
+    const flow_start_A = paths.top + paths.shortcut;
+    const flow_A_end   = paths.top;
+    const flow_start_B = paths.bottom;
+    const flow_B_end   = paths.bottom + paths.shortcut;
+
+    // Update dynamic text metrics based on congestion formula
+    document.getElementById('lbl-start-A').innerText = `Cost: ${flow_start_A} mins (${flow_start_A} cars)`;
+    document.getElementById('lbl-B-end').innerText   = `Cost: ${flow_B_end} mins (${flow_B_end} cars)`;
+    
+    // Calculate total costs for the paths
+    const costTop = (flow_start_A / 1) + 45;
+    const costBottom = 45 + (flow_B_end / 1);
+    const costShortcut = (flow_start_A / 1) + 0 + (flow_B_end / 1);
+
+    // Dynamic coloring of choices
+    document.getElementById('edge-shortcut').className = shortcutBuilt ? 'edge active-edge' : 'edge hidden';
+    document.getElementById('lbl-shortcut').className = shortcutBuilt ? 'edge-label' : 'edge-label hidden';
+
+    // Track total performance average metrics
+    const totalSystemTime = (paths.top * costTop) + (paths.bottom * costBottom) + (paths.shortcut * costShortcut);
+    const avgTime = totalSystemTime / TOTAL_DRIVERS;
+
+    document.getElementById('count-top').innerText = paths.top;
+    document.getElementById('count-bottom').innerText = paths.bottom;
+    document.getElementById('count-shortcut').innerText = paths.shortcut;
+    document.getElementById('avg-time').innerText = avgTime.toFixed(1);
+}
+
+// Nash Equilibrium step simulator: Let drivers act on self-interest 
+function stepSimulation() {
+    // Evaluate path costs right now
+    const flow_start_A = paths.top + paths.shortcut;
+    const flow_B_end   = paths.bottom + paths.shortcut;
+
+    const t_top = flow_start_A + 45;
+    const t_bottom = 45 + flow_B_end;
+    const t_shortcut = shortcutBuilt ? (flow_start_A + flow_B_end) : Infinity;
+
+    // Simulate individual drivers switching to the path that saves them time
+    let changed = false;
+
+    // Helper: move one driver if target path is cheaper
+    if (paths.top > 0 && t_bottom < t_top && t_bottom < t_shortcut) { paths.top--; paths.bottom++; changed = true; }
+    else if (paths.top > 0 && t_shortcut < t_top && t_shortcut < t_bottom) { paths.top--; paths.shortcut++; changed = true; }
+    else if (paths.bottom > 0 && t_top < t_bottom && t_top < t_shortcut) { paths.bottom--; paths.top++; changed = true; }
+    else if (paths.bottom > 0 && t_shortcut < t_bottom && t_shortcut < t_top) { paths.bottom--; paths.shortcut++; changed = true; }
+    else if (paths.shortcut > 0 && t_top < t_shortcut && t_top < t_bottom) { paths.shortcut--; paths.top++; changed = true; }
+    else if (paths.shortcut > 0 && t_bottom < t_shortcut && t_bottom < t_top) { paths.shortcut--; paths.bottom++; changed = true; }
+    
+    // Batch move trick to reach Nash quicker in presentation clicks
+    if (changed) {
+        for (let i = 0; i < 5; i++) {
+            // Run standard minor re-allocations inside a loop 
+            let f_A = paths.top + paths.shortcut;
+            let f_B = paths.bottom + paths.shortcut;
+            let c_top = f_A + 45;
+            let c_bot = 45 + f_B;
+            let c_sh = shortcutBuilt ? (f_A + f_B) : Infinity;
+
+            if (shortcutBuilt && paths.top > 0 && c_sh < c_top) { paths.top--; paths.shortcut++; }
+            if (shortcutBuilt && paths.bottom > 0 && c_sh < c_bot) { paths.bottom--; paths.shortcut++; }
+        }
+    }
+
+    updateUI();
+}
+
+document.getElementById('toggle-shortcut').addEventListener('click', (e) => {
+    shortcutBuilt = !shortcutBuilt;
+    e.target.innerText = shortcutBuilt ? "Remove Shortcut (A → B)" : "Add Shortcut (A → B)";
+    updateUI();
+});
+
+document.getElementById('step-sim').addEventListener('click', stepSimulation);
+
+document.getElementById('reset-sim').addEventListener('click', () => {
+    paths = { top: 50, bottom: 50, shortcut: 0 };
+    shortcutBuilt = false;
+    document.getElementById('toggle-shortcut').innerText = "Add Shortcut (A → B)";
+    updateUI();
+});
+
+// Run layout generation on initialization
+window.onload = initLayout;
+</script>
+</body>
+</html>
