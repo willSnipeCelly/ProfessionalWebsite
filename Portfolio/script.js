@@ -105,6 +105,13 @@ const projects = [
         liveUrl: "/Projects/Dulko/Dulko.html",
         repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite/tree/main/Portfolio/Portfolio/Projects/Dulko.html",
     },
+
+  {
+        title: "Power BI Dashboards",
+        description: "A collection of interactive Power BI dashboards focusing on financial tracking and data analysis.",
+        liveUrl: "/Projects/power-bi-gallery.html",
+        repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite",
+    },
 ];
 
 // Dynamically load projects
