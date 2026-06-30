@@ -2,141 +2,366 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Braess Paradox Visualizer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Braess's Paradox Simulator</title>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f2f5; }
-        .controls { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px; text-align: center; }
-        canvas { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 6px; background: #0071e3; color: white; font-weight: bold; }
-        button:hover { background: #005bb5; }
-        .stats { margin-top: 15px; font-size: 1.1em; color: #333; }
+        :root {
+            --primary: #0071e3;
+            --success: #28a745;
+            --danger: #dc3545;
+            --bg-canvas: #f5f5f7;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background: #fff;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--bg-canvas);
+            border-radius: 12px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--primary);
+            color: white;
+            margin: 5px;
+            transition: all 0.2s ease;
+        }
+        button:hover { background-color: #005bb5; transform: translateY(-1px); }
+        button:active { transform: translateY(1px); }
+        #reset-sim { background-color: #6e6e73; }
+        #reset-sim:hover { background-color: #515154; }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .stat-card {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-val {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-top: 4px;
+        }
+        .network-container {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            background-color: #fafafa;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            margin-top: 25px;
+            overflow: hidden;
+        }
+        
+        /* Nodes */
+        .node {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 10;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #node-start { top: 195px; left: 40px; background: var(--success); }
+        #node-A     { top: 40px;  left: 420px; background: #3a3a3c; }
+        #node-B     { top: 350px; left: 420px; background: #3a3a3c; }
+        #node-end   { top: 195px; right: 40px; background: var(--danger); }
+
+        /* Edges & Labels */
+        .edge {
+            position: absolute;
+            height: 8px;
+            background-color: #e5e5e5;
+            transform-origin: 0 50%;
+            z-index: 5;
+            border-radius: 4px;
+        }
+        .edge-label {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 4px 8px;
+            border: 1px solid #d2d2d7;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 12;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            pointer-events: none;
+        }
+        .active-edge { background-color: #d2d2d7; }
+        .shortcut-road { transition: opacity 0.3s ease; }
+        .hidden { opacity: 0 !important; pointer-events: none !important; }
+
+        /* Animated Dot Cars */
+        .car {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            z-index: 8;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
     </style>
 </head>
 <body>
 
-<div class="controls">
-    <h2>Braess's Paradox: Nash Equilibrium</h2>
-    <button id="toggle-btn">Add Shortcut (A → B)</button>
-    <button id="reset-btn" style="background:#666;">Reset</button>
-    <div class="stats" id="stats">Avg Time: 95.0 mins</div>
+<div class="container">
+    <h2>Interactive Nash Equilibrium & Braess's Paradox Model</h2>
+    <p>100 commuters find their own optimal path. Watch how self-interest dictates traffic flow.</p>
+    
+    <div class="controls">
+        <button id="toggle-shortcut">Add Shortcut (A → B)</button>
+        <button id="step-sim">Simulate Next Commute</button>
+        <button id="reset-sim">Reset Model</button>
+        
+        <div class="stats">
+            <div class="stat-card">Via Top Path<div class="stat-val" id="count-top">50</div></div>
+            <div class="stat-card">Via Bottom Path<div class="stat-val" id="count-bottom">50</div></div>
+            <div class="stat-card">Via Shortcut Path<div class="stat-val" id="count-shortcut">0</div></div>
+            <div class="stat-card" style="border-left: 3px solid var(--danger);">Avg Commute Time<div class="stat-val" id="avg-time" style="color: var(--danger);">95.0m</div></div>
+        </div>
+    </div>
+
+    <div class="network-container" id="network">
+        <!-- Nodes -->
+        <div class="node" id="node-start">Start</div>
+        <div class="node" id="node-A">A</div>
+        <div class="node" id="node-B">B</div>
+        <div class="node" id="node-end">End</div>
+
+        <!-- Dynamic Cost Displays -->
+        <div class="edge-label" style="top: 100px; left: 240px;" id="lbl-start-A">Start → A: 50.0m</div>
+        <div class="edge-label" style="top: 350px; left: 240px;" id="lbl-start-B">Start → B: 45.0m</div>
+        <div class="edge-label" style="top: 100px; left: 660px;" id="lbl-A-end">A → End: 45.0m</div>
+        <div class="edge-label" style="top: 350px; left: 660px;" id="lbl-B-end">B → End: 50.0m</div>
+        <div class="edge-label shortcut-road hidden" style="top: 225px; left: 450px;" id="lbl-shortcut">A → B: 0.0m</div>
+    </div>
 </div>
 
-<canvas id="simCanvas" width="800" height="400"></canvas>
-
 <script>
-const canvas = document.getElementById('simCanvas');
-const ctx = canvas.getContext('2d');
-const toggleBtn = document.getElementById('toggle-btn');
-const resetBtn = document.getElementById('reset-btn');
-const statsDiv = document.getElementById('stats');
+const TOTAL_DRIVERS = 100;
+let shortcutBuilt = false;
 
-let shortcutActive = false;
-const totalCars = 100;
-// Distribution: cars across paths. 
-// We use floating point numbers to represent the *probability* or continuous flow
-// which prevents the "math lock" of integer rounding.
-let flow = { top: 50, bottom: 50, shortcut: 0 };
-
-function updateSimulation() {
-    // Congestion formulas
-    const fA = flow.top + flow.shortcut;
-    const fB = flow.bottom + flow.shortcut;
-    
-    const costTop = fA + 45;
-    const costBottom = 45 + fB;
-    const costShortcut = shortcutActive ? (fA + fB) : Infinity;
-
-    // Continuous adjustment rate (learning rate)
-    const rate = 0.05; 
-
-    if (shortcutActive) {
-        // If shortcut is cheaper than top, move flow from top to shortcut
-        if (costShortcut < costTop - 0.1 && flow.top > 0) {
-            let move = Math.min(flow.top, rate * (costTop - costShortcut));
-            flow.top -= move; flow.shortcut += move;
-        }
-        // If shortcut is cheaper than bottom, move flow from bottom to shortcut
-        if (costShortcut < costBottom - 0.1 && flow.bottom > 0) {
-            let move = Math.min(flow.bottom, rate * (costBottom - costShortcut));
-            flow.bottom -= move; flow.shortcut += move;
-        }
-    } else {
-        // If shortcut is off, bleed shortcut cars back to main routes
-        if (flow.shortcut > 0) {
-            let move = Math.min(flow.shortcut, 2);
-            flow.shortcut -= move;
-            if (flow.top <= flow.bottom) flow.top += move;
-            else flow.bottom += move;
-        }
+// Array of 100 driver objects tracking their current choice: 'top', 'bottom', or 'shortcut'
+let drivers = [];
+function initDrivers() {
+    drivers = [];
+    for (let i = 0; i < TOTAL_DRIVERS; i++) {
+        drivers.push({ id: i, path: i < 50 ? 'top' : 'bottom' });
     }
-    
-    // Calculate display stats
-    const avgTime = (flow.top * costTop + flow.bottom * costBottom + flow.shortcut * costShortcut) / totalCars;
-    statsDiv.innerText = `Avg Time: ${avgTime.toFixed(1)} mins | Top: ${Math.round(flow.top)} | Btm: ${Math.round(flow.bottom)} | Short: ${Math.round(flow.shortcut)}`;
 }
 
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw Network Lines
-    ctx.strokeStyle = '#ccc';
-    ctx.lineWidth = 4;
-    
-    // Main paths
-    ctx.beginPath(); ctx.moveTo(100, 200); ctx.lineTo(400, 100); ctx.lineTo(700, 200); ctx.stroke(); // Top
-    ctx.beginPath(); ctx.moveTo(100, 200); ctx.lineTo(400, 300); ctx.lineTo(700, 200); ctx.stroke(); // Bottom
-    
-    // Shortcut
-    if (shortcutActive) {
-        ctx.strokeStyle = '#0071e3';
-        ctx.beginPath(); ctx.moveTo(400, 100); ctx.lineTo(400, 300); ctx.stroke();
+// Coordinate mappings for rendering pathways and cars
+const positions = {
+    start: { x: 70, y: 225 },
+    A: { x: 450, y: 70 },
+    B: { x: 450, y: 380 },
+    end: { x: 830, y: 225 }
+};
+
+function drawEdge(id, p1, p2) {
+    let edge = document.getElementById(id);
+    if (!edge) {
+        edge = document.createElement('div');
+        edge.id = id;
+        edge.className = 'edge';
+        document.getElementById('network').appendChild(edge);
     }
-
-    // Draw Nodes
-    ctx.fillStyle = '#333';
-    ctx.beginPath(); ctx.arc(100, 200, 20, 0, Math.PI*2); ctx.fill(); // Start
-    ctx.beginPath(); ctx.arc(700, 200, 20, 0, Math.PI*2); ctx.fill(); // End
-    ctx.fillStyle = '#28a745';
-    ctx.beginPath(); ctx.arc(400, 100, 20, 0, Math.PI*2); ctx.fill(); // A
-    ctx.beginPath(); ctx.arc(400, 300, 20, 0, Math.PI*2); ctx.fill(); // B
-
-    // Draw Cars as particles
-    drawCars(flow.top, 100, 200, 400, 100, 700, 200, 'top');
-    drawCars(flow.bottom, 100, 200, 400, 300, 700, 200, 'bottom');
-    if (shortcutActive) drawCars(flow.shortcut, 400, 100, 400, 200, 400, 300, 'shortcut');
+    const length = Math.sqrt((p2.x - p1.x)**2 + (p2.y - p1.y)**2);
+    const angle  = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+    
+    edge.style.width = length + 'px';
+    edge.style.transform = `rotate(${angle}deg)`;
+    edge.style.top = p1.y + 'px';
+    edge.style.left = p1.x + 'px';
 }
 
-function drawCars(count, x1, y1, x2, y2, x3, y3, type) {
-    ctx.fillStyle = '#e74c3c';
-    for(let i=0; i<count; i++) {
-        // Simple animation offset based on time
-        let t = (Date.now() / 2000 + i / count) % 1;
-        let px, py;
+function spawnCarVisuals() {
+    const canvas = document.getElementById('network');
+    for (let i = 0; i < TOTAL_DRIVERS; i++) {
+        let car = document.createElement('div');
+        car.id = `car-${i}`;
+        car.className = 'car';
+        canvas.appendChild(car);
+    }
+}
+
+function updateUI() {
+    // 1. Calculate active capacities
+    const counts = { top: 0, bottom: 0, shortcut: 0 };
+    drivers.forEach(d => counts[d.path]++);
+
+    const flow_start_A = counts.top + counts.shortcut;
+    const flow_A_end   = counts.top;
+    const flow_start_B = counts.bottom;
+    const flow_B_end   = counts.bottom + counts.shortcut;
+
+    // Formulas: T/100 maps precisely to flow counts since max drivers = 100
+    const cost_start_A = flow_start_A;
+    const cost_A_end   = 45;
+    const cost_start_B = 45;
+    const cost_B_end   = flow_B_end;
+    const cost_shortcut = 0;
+
+    // 2. Render cost labels
+    document.getElementById('lbl-start-A').innerText = `Start → A: ${cost_start_A}m (${flow_start_A} cars)`;
+    document.getElementById('lbl-start-B').innerText = `Start → B: ${cost_start_B}m (${counts.bottom} cars)`;
+    document.getElementById('lbl-A-end').innerText   = `A → End: ${cost_A_end}m (${counts.top} cars)`;
+    document.getElementById('lbl-B-end').innerText   = `B → End: ${cost_B_end}m (${flow_B_end} cars)`;
+    
+    // Toggle shortcut edge transparency structures
+    document.getElementById('edge-shortcut').className = shortcutBuilt ? 'edge active-edge shortcut-road' : 'edge shortcut-road hidden';
+    document.getElementById('lbl-shortcut').className = shortcutBuilt ? 'edge-label shortcut-road' : 'edge-label shortcut-road hidden';
+
+    // 3. System Averages
+    const t_top = cost_start_A + cost_A_end;
+    const t_bottom = cost_start_B + cost_B_end;
+    const t_shortcut = cost_start_A + cost_shortcut + cost_B_end;
+
+    const totalSystemTime = (counts.top * t_top) + (counts.bottom * t_bottom) + (counts.shortcut * t_shortcut);
+    const avgTime = totalSystemTime / TOTAL_DRIVERS;
+
+    document.getElementById('count-top').innerText = counts.top;
+    document.getElementById('count-bottom').innerText = counts.bottom;
+    document.getElementById('count-shortcut').innerText = counts.shortcut;
+    document.getElementById('avg-time').innerText = `${avgTime.toFixed(1)}m`;
+
+    // 4. Animate visual cars down paths smoothly
+    let counters = { startA: 0, AEnd: 0, startB: 0, BEnd: 0, AB: 0 };
+
+    drivers.forEach((driver) => {
+        const carEl = document.getElementById(`car-${driver.id}`);
+        if (!carEl) return;
+
+        let targetX, targetY;
+        // Distribute cars slightly across segments to display density stacks
+        if (driver.path === 'top') {
+            let pct = 0.3 + (counters.startA % 10) * 0.05;
+            targetX = positions.start.x + (positions.A.x - positions.start.x) * pct + (counters.startA % 3 * 6);
+            targetY = positions.start.y + (positions.A.y - positions.start.y) * pct;
+            counters.startA++;
+        } else if (driver.path === 'bottom') {
+            let pct = 0.3 + (counters.startB % 10) * 0.05;
+            targetX = positions.start.x + (positions.B.x - positions.start.x) * pct + (counters.startB % 3 * 6);
+            targetY = positions.start.y + (positions.B.y - positions.start.y) * pct;
+            counters.startB++;
+        } else if (driver.path === 'shortcut') {
+            // Stack cars right down the middle bypass road bottleneck
+            let pct = 0.2 + (counters.AB % 12) * 0.05;
+            targetX = positions.A.x + (counters.AB % 3 * 6) - 6;
+            targetY = positions.A.y + (positions.B.y - positions.A.y) * pct;
+            counters.AB++;
+        }
         
-        if (type === 'top') {
-            px = t < 0.5 ? x1 + (x2-x1)*(t*2) : x2 + (x3-x2)*((t-0.5)*2);
-            py = t < 0.5 ? y1 + (y2-y1)*(t*2) : y2 + (y3-y2)*((t-0.5)*2);
-        } else if (type === 'bottom') {
-            px = t < 0.5 ? x1 + (x2-x1)*(t*2) : x2 + (x3-x2)*((t-0.5)*2);
-            py = t < 0.5 ? y1 + (y2-y1)*(t*2) : y2 + (y3-y2)*((t-0.5)*2);
-        } else {
-            px = x1;
-            py = y1 + (y3-y1)*t;
+        carEl.style.left = targetX + 'px';
+        carEl.style.top = targetY + 'px';
+    });
+}
+
+function stepSimulation() {
+    // Compute current baseline metrics
+    const counts = { top: 0, bottom: 0, shortcut: 0 };
+    drivers.forEach(d => counts[d.path]++);
+
+    let current_f_start_A = counts.top + counts.shortcut;
+    let current_f_B_end   = counts.bottom + counts.shortcut;
+
+    let cost_top = current_f_start_A + 45;
+    let cost_bottom = 45 + current_f_B_end;
+    let cost_shortcut = shortcutBuilt ? (current_f_start_A + current_f_B_end) : Infinity;
+
+    let changesMade = 0;
+
+    // Iterate drivers. Every single one checks if a structural shift reduces their personal commute.
+    // Introducing a subtle calculation noise buffer allows Nash patterns to break static deadlocks cleanly.
+    drivers.forEach(driver => {
+        if (changesMade > 12) return; // Cap changes per turn to visually pace updates for the audience
+
+        let bestPath = driver.path;
+        let currentCost = driver.path === 'top' ? cost_top : (driver.path === 'bottom' ? cost_bottom : cost_shortcut);
+
+        // Check alternatives
+        if (cost_top < currentCost) { currentCost = cost_top; bestPath = 'top'; }
+        if (cost_bottom < currentCost) { currentCost = cost_bottom; bestPath = 'bottom'; }
+        if (cost_shortcut < currentCost) { currentCost = cost_shortcut; bestPath = 'shortcut'; }
+
+        // Bounded exploration/noise element: if costs are tied or look identical, drivers periodically sample alternatives
+        if (!shortcutBuilt && driver.path === 'shortcut') {
+            bestPath = Math.random() > 0.5 ? 'top' : 'bottom';
         }
-        ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI*2); ctx.fill();
-    }
+        
+        if (shortcutBuilt && counts.shortcut === 0 && Math.random() < 0.15) {
+            bestPath = 'shortcut'; // Spark curiosity vector to break initial 50/50 game gridlock
+        }
+
+        if (bestPath !== driver.path) {
+            driver.path = bestPath;
+            changesMade++;
+        }
+    });
+
+    updateUI();
 }
 
-function loop() {
-    updateSimulation();
-    draw();
-    requestAnimationFrame(loop);
-}
+document.getElementById('toggle-shortcut').addEventListener('click', (e) => {
+    shortcutBuilt = !shortcutBuilt;
+    e.target.innerText = shortcutBuilt ? "Remove Shortcut (A → B)" : "Add Shortcut (A → B)";
+    updateUI();
+});
 
-toggleBtn.onclick = () => { shortcutActive = !shortcutActive; toggleBtn.innerText = shortcutActive ? "Remove Shortcut (A → B)" : "Add Shortcut (A → B)"; };
-resetBtn.onclick = () => { flow = { top: 50, bottom: 50, shortcut: 0 }; shortcutActive = false; toggleBtn.innerText = "Add Shortcut (A → B)"; };
+document.getElementById('step-sim').addEventListener('click', stepSimulation);
 
-loop();
+document.getElementById('reset-sim').addEventListener('click', () => {
+    shortcutBuilt = false;
+    document.getElementById('toggle-shortcut').innerText = "Add Shortcut (A → B)";
+    initDrivers();
+    updateUI();
+});
+
+window.onload = () => {
+    drawEdge('edge-start-A', positions.start, positions.A);
+    drawEdge('edge-start-B', positions.start, positions.B);
+    drawEdge('edge-A-end', positions.A, positions.end);
+    drawEdge('edge-B-end', positions.B, positions.end);
+    drawEdge('edge-shortcut', positions.A, positions.B);
+    
+    initDrivers();
+    spawnCarVisuals();
+    updateUI();
+};
 </script>
 </body>
 </html>
