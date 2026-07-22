@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Button Royale Prototype</title>
+  <title>Button Royale - Physics Fix</title>
   <style>
     body {
       margin: 0;
@@ -24,210 +24,395 @@
     }
     #ui {
       margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      width: 900px;
       font-size: 1.1rem;
-      color: #edf2f4;
     }
-    .status { font-weight: bold; }
-    .penalty { color: #ef233c; }
-    .ok { color: #06d6a0; }
+    .blue-team { color: #3a86ff; font-weight: bold; }
+    .red-team { color: #ef233c; font-weight: bold; }
+    .penalty { color: #6c757d; }
+    
+    #header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 70px;
+      margin-bottom: 10px;
+    }
+    #message { 
+      font-size: 1.5rem; 
+      font-weight: bold; 
+      color: #06d6a0; 
+      text-align: center; 
+    }
+    #restartBtn {
+      display: none;
+      margin-top: 10px;
+      padding: 8px 24px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      background: #ffb703;
+      color: #1e1e24;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      transition: background 0.2s;
+    }
+    #restartBtn:hover {
+      background: #fb8500;
+    }
   </style>
 </head>
 <body>
 
+  <div id="header">
+    <div id="message">Disable all enemy buttons to win!</div>
+    <button id="restartBtn">New Game</button>
+  </div>
+  
   <canvas id="gameCanvas" width="900" height="600"></canvas>
   <div id="ui">
-    Click a button and drag to aim, release to shoot! 
-    Status: <span id="status" class="status ok">Ready</span>
+    <div id="blueStatus" class="blue-team">P1 (A, S, D): Ready</div>
+    <div id="redStatus" class="red-team">P2 (J, K, L): Ready</div>
   </div>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const statusEl = document.getElementById('status');
+const msgEl = document.getElementById('message');
+const blueStatEl = document.getElementById('blueStatus');
+const redStatEl = document.getElementById('redStatus');
+const restartBtn = document.getElementById('restartBtn');
 
-// Game State
 const BUTTON_RADIUS = 20;
-let isLockedOut = false;
-let lockOutTimer = 0;
+const MAX_POWER = 450;
+let gameOver = false;
 
-// Player's 3 buttons
-const buttons = [
-  { id: 1, x: 200, y: 250, vx: 0, vy: 0, color: '#3a86ff' },
-  { id: 2, x: 200, y: 350, vx: 0, vy: 0, color: '#3a86ff' },
-  { id: 3, x: 100, y: 300, vx: 0, vy: 0, color: '#3a86ff' }
-];
-
-// Target/Enemy button (for testing the Battle Royale hit mechanic)
-const enemy = { x: 700, y: 300, radius: 25, color: '#ef233c', alive: true };
-
-// Drag & Aim Controls
-let selectedButton = null;
-let isDragging = false;
-let dragStart = { x: 0, y: 0 };
-let currentMouse = { x: 0, y: 0 };
-
-// --- Line Intersection Math ---
-// Checks if segment (A -> B) intersects segment (C -> D)
-function intersects(A, B, C, D) {
-  function ccw(p1, p2, p3) {
-    return (p3.y - p1.y) * (p2.x - p1.x) > (p2.y - p1.y) * (p3.x - p1.x);
+// --- Player State ---
+const players = {
+  blue: {
+    team: 'blue',
+    color: '#3a86ff',
+    keys: { 'a': 0, 's': 1, 'd': 2 },
+    buttons: [],
+    lockedOut: false,
+    lockTimer: 0,
+    charge: null
+  },
+  red: {
+    team: 'red',
+    color: '#ef233c',
+    keys: { 'j': 0, 'k': 1, 'l': 2 },
+    buttons: [],
+    lockedOut: false,
+    lockTimer: 0,
+    charge: null
   }
+};
+
+// --- Initialization & Reset ---
+function initGame() {
+  gameOver = false;
+  
+  players.blue.buttons = [
+    { id: 'b0', team: 'blue', x: 100, y: 150, vx: 0, vy: 0, disabled: false },
+    { id: 'b1', team: 'blue', x: 100, y: 450, vx: 0, vy: 0, disabled: false },
+    { id: 'b2', team: 'blue', x: 50,  y: 300, vx: 0, vy: 0, disabled: false }
+  ];
+  players.blue.lockedOut = false;
+  players.blue.lockTimer = 0;
+  players.blue.charge = null;
+  blueStatEl.textContent = "P1 (A, S, D): Ready";
+  blueStatEl.className = "blue-team";
+
+  players.red.buttons = [
+    { id: 'r0', team: 'red', x: 800, y: 150, vx: 0, vy: 0, disabled: false },
+    { id: 'r1', team: 'red', x: 800, y: 450, vx: 0, vy: 0, disabled: false },
+    { id: 'r2', team: 'red', x: 850, y: 300, vx: 0, vy: 0, disabled: false }
+  ];
+  players.red.lockedOut = false;
+  players.red.lockTimer = 0;
+  players.red.charge = null;
+  redStatEl.textContent = "P2 (J, K, L): Ready";
+  redStatEl.className = "red-team";
+
+  msgEl.textContent = "Disable all enemy buttons to win!";
+  msgEl.style.color = "#06d6a0";
+  restartBtn.style.display = 'none';
+  
+  activeKeys.clear();
+}
+
+restartBtn.addEventListener('click', initGame);
+
+// --- Math & Physics ---
+function intersects(A, B, C, D) {
+  function ccw(p1, p2, p3) { return (p3.y - p1.y) * (p2.x - p1.x) > (p2.y - p1.y) * (p3.x - p1.x); }
   return (ccw(A,C,D) !== ccw(B,C,D)) && (ccw(A,B,C) !== ccw(A,B,D));
 }
 
-// Check if move vector passed between the other two buttons
-function isValidPass(activeBtn, startPos, endPos) {
-  const others = buttons.filter(b => b.id !== activeBtn.id);
+function isValidPass(team, activeIndex, startPos, endPos) {
+  const others = team.buttons.filter((b, i) => i !== activeIndex);
   const C = { x: others[0].x, y: others[0].y };
   const D = { x: others[1].x, y: others[1].y };
   return intersects(startPos, endPos, C, D);
 }
 
-// --- Event Listeners ---
-canvas.addEventListener('mousedown', (e) => {
-  if (isLockedOut) return;
+// --- Input Handling ---
+const activeKeys = new Set();
 
-  const rect = canvas.getBoundingClientRect();
-  const mouseX = e.clientX - rect.left;
-  const mouseY = e.clientY - rect.top;
+window.addEventListener('keydown', (e) => {
+  if (gameOver) return;
+  const key = e.key.toLowerCase();
+  if (activeKeys.has(key)) return;
+  activeKeys.add(key);
 
-  // Find clicked button
-  for (let b of buttons) {
-    const dist = Math.hypot(b.x - mouseX, b.y - mouseY);
-    if (dist < BUTTON_RADIUS) {
-      selectedButton = b;
-      isDragging = true;
-      dragStart = { x: b.x, y: b.y };
-      currentMouse = { x: mouseX, y: mouseY };
-      break;
+  [players.blue, players.red].forEach(team => {
+    if (key in team.keys && !team.lockedOut && !team.charge) {
+      const btnIndex = team.keys[key];
+      if (!team.buttons[btnIndex].disabled) {
+        team.charge = { 
+          index: btnIndex, 
+          angle: team.team === 'red' ? Math.PI : 0, 
+          power: 0, 
+          dPower: 400 
+        };
+      }
     }
-  }
+  });
 });
 
-canvas.addEventListener('mousemove', (e) => {
-  if (!isDragging) return;
-  const rect = canvas.getBoundingClientRect();
-  currentMouse = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+window.addEventListener('keyup', (e) => {
+  const key = e.key.toLowerCase();
+  activeKeys.delete(key);
+  if (gameOver) return;
+
+  [players.blue, players.red].forEach((team, idx) => {
+    if (key in team.keys && team.charge && team.charge.index === team.keys[key]) {
+      fireButton(team, idx === 0 ? blueStatEl : redStatEl, idx === 0 ? "P1 (A, S, D)" : "P2 (J, K, L)");
+    }
+  });
 });
 
-canvas.addEventListener('mouseup', () => {
-  if (!isDragging || !selectedButton) return;
-
-  // Calculate launch velocity based on pull-back distance
-  const dx = dragStart.x - currentMouse.x;
-  const dy = dragStart.y - currentMouse.y;
+function fireButton(team, uiEl, label) {
+  const charge = team.charge;
+  const btn = team.buttons[charge.index];
   
-  // Predict endpoint (simplified for rule check)
-  const power = 0.15;
-  selectedButton.vx = dx * power;
-  selectedButton.vy = dy * power;
+  const speed = charge.power * 0.05;
+  btn.vx = Math.cos(charge.angle) * speed;
+  btn.vy = Math.sin(charge.angle) * speed;
 
-  const startPos = { x: dragStart.x, y: dragStart.y };
-  const endPos = { x: dragStart.x + selectedButton.vx * 15, y: dragStart.y + selectedButton.vy * 15 };
+  const startPos = { x: btn.x, y: btn.y };
+  const endPos = { x: btn.x + (btn.vx * 30), y: btn.y + (btn.vy * 30) };
 
-  // Verify "Button Hockey" Pass Rule
-  if (!isValidPass(selectedButton, startPos, endPos)) {
-    triggerLockout();
+  if (!isValidPass(team, charge.index, startPos, endPos)) {
+    team.lockedOut = true;
+    team.lockTimer = 3.0;
+    uiEl.textContent = `${label}: MISSED PASS! (3.0s)`;
+    uiEl.className = "penalty";
   }
 
-  isDragging = false;
-  selectedButton = null;
-});
-
-function triggerLockout() {
-  isLockedOut = true;
-  lockOutTimer = 3.0; // 3 seconds penalty
-  statusEl.textContent = "MISSED PASS! Locked out for 3.0s";
-  statusEl.className = "status penalty";
+  team.charge = null;
 }
 
-// --- Main Game Loop ---
+// --- Game Loop ---
 let lastTime = performance.now();
 
 function gameLoop(now) {
   const dt = (now - lastTime) / 1000;
   lastTime = now;
 
-  // Update Lockout Timer
-  if (isLockedOut) {
-    lockOutTimer -= dt;
-    if (lockOutTimer <= 0) {
-      isLockedOut = false;
-      statusEl.textContent = "Ready";
-      statusEl.className = "status ok";
-    } else {
-      statusEl.textContent = `MISSED PASS! Locked out for ${lockOutTimer.toFixed(1)}s`;
-    }
-  }
-
-  // Physics Updates
-  buttons.forEach(b => {
-    b.x += b.vx;
-    b.y += b.vy;
-    b.vx *= 0.95; // Friction
-    b.vy *= 0.95;
-
-    // Check collision with enemy target
-    if (enemy.alive) {
-      const dist = Math.hypot(b.x - enemy.x, b.y - enemy.y);
-      if (dist < BUTTON_RADIUS + enemy.radius) {
-        enemy.alive = false; // "Knocked out" in Battle Royale
-      }
-    }
-  });
-
-  // --- Rendering ---
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Draw line connecting the two passive buttons (The "Goal Gate")
-  if (buttons.length === 3) {
-    ctx.beginPath();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([5, 5]);
-    ctx.moveTo(buttons[0].x, buttons[0].y);
-    ctx.lineTo(buttons[1].x, buttons[1].y);
-    ctx.lineTo(buttons[2].x, buttons[2].y);
-    ctx.lineTo(buttons[0].x, buttons[0].y);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  // Draw Slingshot Aim Line
-  if (isDragging && selectedButton) {
-    ctx.beginPath();
-    ctx.strokeStyle = '#ffb703';
-    ctx.lineWidth = 3;
-    ctx.moveTo(selectedButton.x, selectedButton.y);
-    ctx.lineTo(currentMouse.x, currentMouse.y);
-    ctx.stroke();
-  }
-
-  // Draw Enemy
-  if (enemy.alive) {
-    ctx.beginPath();
-    ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
-    ctx.fillStyle = enemy.color;
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#fff';
-    ctx.stroke();
-  }
-
-  // Draw Player Buttons
-  buttons.forEach(b => {
-    ctx.beginPath();
-    ctx.arc(b.x, b.y, BUTTON_RADIUS, 0, Math.PI * 2);
-    ctx.fillStyle = isLockedOut ? '#6c757d' : b.color;
-    ctx.fill();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = '#fff';
-    ctx.stroke();
-  });
+  if (!gameOver) update(dt);
+  draw();
 
   requestAnimationFrame(gameLoop);
 }
 
+function update(dt) {
+  [players.blue, players.red].forEach((team, idx) => {
+    if (team.charge) {
+      team.charge.angle += Math.PI * 1.5 * dt; 
+      team.charge.power += team.charge.dPower * dt;
+      if (team.charge.power > MAX_POWER || team.charge.power < 0) {
+        team.charge.power = Math.max(0, Math.min(team.charge.power, MAX_POWER));
+        team.charge.dPower *= -1;
+      }
+    }
+    updateLockout(team, idx === 0 ? blueStatEl : redStatEl, idx === 0 ? "P1 (A, S, D)" : "P2 (J, K, L)", dt, `${team.team}-team`);
+  });
+
+  const allButtons = [...players.blue.buttons, ...players.red.buttons];
+
+  allButtons.forEach(b => {
+    b.x += b.vx;
+    b.y += b.vy;
+    
+    // Friction
+    b.vx *= 0.96; 
+    b.vy *= 0.96;
+    
+    // Snap to 0 velocity to clear out "micro-drifting" moving armor
+    if (Math.abs(b.vx) < 0.1) b.vx = 0;
+    if (Math.abs(b.vy) < 0.1) b.vy = 0;
+
+    // Wall bounces
+    if (b.x < BUTTON_RADIUS) { b.x = BUTTON_RADIUS; b.vx *= -1; }
+    if (b.x > canvas.width - BUTTON_RADIUS) { b.x = canvas.width - BUTTON_RADIUS; b.vx *= -1; }
+    if (b.y < BUTTON_RADIUS) { b.y = BUTTON_RADIUS; b.vy *= -1; }
+    if (b.y > canvas.height - BUTTON_RADIUS) { b.y = canvas.height - BUTTON_RADIUS; b.vy *= -1; }
+  });
+
+  for (let i = 0; i < allButtons.length; i++) {
+    for (let j = i + 1; j < allButtons.length; j++) {
+      let b1 = allButtons[i];
+      let b2 = allButtons[j];
+      let dx = b2.x - b1.x;
+      let dy = b2.y - b1.y;
+      let dist = Math.hypot(dx, dy);
+
+      if (dist < BUTTON_RADIUS * 2) {
+        let overlap = (BUTTON_RADIUS * 2) - dist;
+        let nx = dx / dist;
+        let ny = dy / dist;
+        
+        // Resolve overlap
+        b1.x -= nx * (overlap / 2);
+        b1.y -= ny * (overlap / 2);
+        b2.x += nx * (overlap / 2);
+        b2.y += ny * (overlap / 2);
+
+        let dvx = b1.vx - b2.vx;
+        let dvy = b1.vy - b2.vy;
+        let vn = dvx * nx + dvy * ny; 
+
+        // Only swap momentum and check hits if they are actively colliding
+        if (vn > 0) {
+          // Check speeds BEFORE momentum swaps
+          let speed1 = Math.hypot(b1.vx, b1.vy);
+          let speed2 = Math.hypot(b2.vx, b2.vy);
+
+          // Elastic Momentum Swap
+          b1.vx -= vn * nx;
+          b1.vy -= vn * ny;
+          b2.vx += vn * nx;
+          b2.vy += vn * ny;
+
+          // Hit Logic: Striker must be > 0, Target must be EXACTLY 0
+          if (speed1 > 0 && speed2 === 0) {
+            if (b1.team !== b2.team && !b2.disabled) b2.disabled = true;
+          } 
+          else if (speed2 > 0 && speed1 === 0) {
+            if (b1.team !== b2.team && !b1.disabled) b1.disabled = true;
+          }
+        }
+      }
+    }
+  }
+
+  const blueDead = players.blue.buttons.every(b => b.disabled);
+  const redDead = players.red.buttons.every(b => b.disabled);
+  
+  if (blueDead) {
+    gameOver = true;
+    msgEl.textContent = "PLAYER 2 (RED) WINS!";
+    msgEl.style.color = players.red.color;
+    restartBtn.style.display = 'block';
+  } else if (redDead) {
+    gameOver = true;
+    msgEl.textContent = "PLAYER 1 (BLUE) WINS!";
+    msgEl.style.color = players.blue.color;
+    restartBtn.style.display = 'block';
+  }
+}
+
+function updateLockout(team, uiEl, label, dt, teamClass) {
+  if (team.lockedOut) {
+    team.lockTimer -= dt;
+    if (team.lockTimer <= 0) {
+      team.lockedOut = false;
+      uiEl.textContent = `${label}: Ready`;
+      uiEl.className = teamClass;
+    } else {
+      uiEl.textContent = `${label}: MISSED PASS! (${team.lockTimer.toFixed(1)}s)`;
+    }
+  }
+}
+
+// --- Rendering ---
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  [players.blue, players.red].forEach(team => {
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([5, 5]);
+    ctx.moveTo(team.buttons[0].x, team.buttons[0].y);
+    ctx.lineTo(team.buttons[1].x, team.buttons[1].y);
+    ctx.lineTo(team.buttons[2].x, team.buttons[2].y);
+    ctx.lineTo(team.buttons[0].x, team.buttons[0].y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    team.buttons.forEach((b, i) => {
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, BUTTON_RADIUS, 0, Math.PI * 2);
+      
+      ctx.fillStyle = b.disabled ? '#212529' : (team.lockedOut ? '#495057' : team.color);
+      ctx.fill();
+      ctx.lineWidth = b.disabled ? 3 : 2;
+      ctx.strokeStyle = b.disabled ? team.color : '#fff';
+      ctx.stroke();
+      
+      if (!b.disabled) {
+        ctx.fillStyle = '#fff';
+        ctx.font = '16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const keyMap = Object.keys(team.keys).find(key => team.keys[key] === i);
+        ctx.fillText(keyMap.toUpperCase(), b.x, b.y);
+      } else {
+        ctx.beginPath();
+        ctx.strokeStyle = team.color;
+        ctx.lineWidth = 3;
+        ctx.moveTo(b.x - 8, b.y - 8); ctx.lineTo(b.x + 8, b.y + 8);
+        ctx.moveTo(b.x + 8, b.y - 8); ctx.lineTo(b.x - 8, b.y + 8);
+        ctx.stroke();
+      }
+    });
+
+    if (team.charge) {
+      const btn = team.buttons[team.charge.index];
+      const angle = team.charge.angle;
+      const displayPower = team.charge.power;
+
+      ctx.save();
+      ctx.translate(btn.x, btn.y);
+      ctx.rotate(angle);
+
+      ctx.beginPath();
+      ctx.strokeStyle = '#ffb703';
+      ctx.lineWidth = 4;
+      ctx.moveTo(BUTTON_RADIUS + 5, 0);
+      ctx.lineTo(BUTTON_RADIUS + 5 + displayPower, 0);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.fillStyle = '#ffb703';
+      ctx.moveTo(BUTTON_RADIUS + 5 + displayPower + 10, 0);
+      ctx.lineTo(BUTTON_RADIUS + 5 + displayPower, 6);
+      ctx.lineTo(BUTTON_RADIUS + 5 + displayPower, -6);
+      ctx.fill();
+
+      ctx.restore();
+    }
+  });
+}
+
+// Bootstrap
+initGame();
 requestAnimationFrame(gameLoop);
 </script>
 </body>
