@@ -112,7 +112,12 @@ const projects = [
         liveUrl: "/Projects/power-bi-gallery.html",
         repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite",
     },
-        
+    {
+        title: "Button Hockey Demo",
+        description: "A quick demo to understand the game mechanics behind button hockey.",
+        liveUrl: "/Projects/Basic Button Hockey Concept.html",
+        repoUrl: "https://github.com/willSnipeCelly/ProfessionalWebsite",
+    }, 
     {    
         title: "Traffic Simulation",
         description: "Baess Paradox simulation.",
