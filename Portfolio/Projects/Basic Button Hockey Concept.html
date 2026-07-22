@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Button Royale Prototype</title>
+  <style>
+    body {
+      margin: 0;
+      background: #1e1e24;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    canvas {
+      background: #2b2d42;
+      border: 4px solid #8d99ae;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      border-radius: 8px;
+    }
+    #ui {
+      margin-top: 12px;
+      font-size: 1.1rem;
+      color: #edf2f4;
+    }
+    .status { font-weight: bold; }
+    .penalty { color: #ef233c; }
+    .ok { color: #06d6a0; }
+  </style>
+</head>
+<body>
+
+  <canvas id="gameCanvas" width="900" height="600"></canvas>
+  <div id="ui">
+    Click a button and drag to aim, release to shoot! 
+    Status: <span id="status" class="status ok">Ready</span>
+  </div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const statusEl = document.getElementById('status');
+
+// Game State
+const BUTTON_RADIUS = 20;
+let isLockedOut = false;
+let lockOutTimer = 0;
+
+// Player's 3 buttons
+const buttons = [
+  { id: 1, x: 200, y: 250, vx: 0, vy: 0, color: '#3a86ff' },
+  { id: 2, x: 200, y: 350, vx: 0, vy: 0, color: '#3a86ff' },
+  { id: 3, x: 100, y: 300, vx: 0, vy: 0, color: '#3a86ff' }
+];
+
+// Target/Enemy button (for testing the Battle Royale hit mechanic)
+const enemy = { x: 700, y: 300, radius: 25, color: '#ef233c', alive: true };
+
+// Drag & Aim Controls
+let selectedButton = null;
+let isDragging = false;
+let dragStart = { x: 0, y: 0 };
+let currentMouse = { x: 0, y: 0 };
+
+// --- Line Intersection Math ---
+// Checks if segment (A -> B) intersects segment (C -> D)
+function intersects(A, B, C, D) {
+  function ccw(p1, p2, p3) {
+    return (p3.y - p1.y) * (p2.x - p1.x) > (p2.y - p1.y) * (p3.x - p1.x);
+  }
+  return (ccw(A,C,D) !== ccw(B,C,D)) && (ccw(A,B,C) !== ccw(A,B,D));
+}
+
+// Check if move vector passed between the other two buttons
+function isValidPass(activeBtn, startPos, endPos) {
+  const others = buttons.filter(b => b.id !== activeBtn.id);
+  const C = { x: others[0].x, y: others[0].y };
+  const D = { x: others[1].x, y: others[1].y };
+  return intersects(startPos, endPos, C, D);
+}
+
+// --- Event Listeners ---
+canvas.addEventListener('mousedown', (e) => {
+  if (isLockedOut) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+
+  // Find clicked button
+  for (let b of buttons) {
+    const dist = Math.hypot(b.x - mouseX, b.y - mouseY);
+    if (dist < BUTTON_RADIUS) {
+      selectedButton = b;
+      isDragging = true;
+      dragStart = { x: b.x, y: b.y };
+      currentMouse = { x: mouseX, y: mouseY };
+      break;
+    }
+  }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  const rect = canvas.getBoundingClientRect();
+  currentMouse = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+});
+
+canvas.addEventListener('mouseup', () => {
+  if (!isDragging || !selectedButton) return;
+
+  // Calculate launch velocity based on pull-back distance
+  const dx = dragStart.x - currentMouse.x;
+  const dy = dragStart.y - currentMouse.y;
+  
+  // Predict endpoint (simplified for rule check)
+  const power = 0.15;
+  selectedButton.vx = dx * power;
+  selectedButton.vy = dy * power;
+
+  const startPos = { x: dragStart.x, y: dragStart.y };
+  const endPos = { x: dragStart.x + selectedButton.vx * 15, y: dragStart.y + selectedButton.vy * 15 };
+
+  // Verify "Button Hockey" Pass Rule
+  if (!isValidPass(selectedButton, startPos, endPos)) {
+    triggerLockout();
+  }
+
+  isDragging = false;
+  selectedButton = null;
+});
+
+function triggerLockout() {
+  isLockedOut = true;
+  lockOutTimer = 3.0; // 3 seconds penalty
+  statusEl.textContent = "MISSED PASS! Locked out for 3.0s";
+  statusEl.className = "status penalty";
+}
+
+// --- Main Game Loop ---
+let lastTime = performance.now();
+
+function gameLoop(now) {
+  const dt = (now - lastTime) / 1000;
+  lastTime = now;
+
+  // Update Lockout Timer
+  if (isLockedOut) {
+    lockOutTimer -= dt;
+    if (lockOutTimer <= 0) {
+      isLockedOut = false;
+      statusEl.textContent = "Ready";
+      statusEl.className = "status ok";
+    } else {
+      statusEl.textContent = `MISSED PASS! Locked out for ${lockOutTimer.toFixed(1)}s`;
+    }
+  }
+
+  // Physics Updates
+  buttons.forEach(b => {
+    b.x += b.vx;
+    b.y += b.vy;
+    b.vx *= 0.95; // Friction
+    b.vy *= 0.95;
+
+    // Check collision with enemy target
+    if (enemy.alive) {
+      const dist = Math.hypot(b.x - enemy.x, b.y - enemy.y);
+      if (dist < BUTTON_RADIUS + enemy.radius) {
+        enemy.alive = false; // "Knocked out" in Battle Royale
+      }
+    }
+  });
+
+  // --- Rendering ---
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw line connecting the two passive buttons (The "Goal Gate")
+  if (buttons.length === 3) {
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([5, 5]);
+    ctx.moveTo(buttons[0].x, buttons[0].y);
+    ctx.lineTo(buttons[1].x, buttons[1].y);
+    ctx.lineTo(buttons[2].x, buttons[2].y);
+    ctx.lineTo(buttons[0].x, buttons[0].y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Draw Slingshot Aim Line
+  if (isDragging && selectedButton) {
+    ctx.beginPath();
+    ctx.strokeStyle = '#ffb703';
+    ctx.lineWidth = 3;
+    ctx.moveTo(selectedButton.x, selectedButton.y);
+    ctx.lineTo(currentMouse.x, currentMouse.y);
+    ctx.stroke();
+  }
+
+  // Draw Enemy
+  if (enemy.alive) {
+    ctx.beginPath();
+    ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
+    ctx.fillStyle = enemy.color;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#fff';
+    ctx.stroke();
+  }
+
+  // Draw Player Buttons
+  buttons.forEach(b => {
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, BUTTON_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = isLockedOut ? '#6c757d' : b.color;
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#fff';
+    ctx.stroke();
+  });
+
+  requestAnimationFrame(gameLoop);
+}
+
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
